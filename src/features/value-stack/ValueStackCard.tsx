@@ -26,7 +26,8 @@ function num(t: string): number | null {
 
 function share(t: string): number | null {
   const n = num(t);
-  return n === null ? null : n / 100;
+  // Shares are percentages: clamp to 0-100% so 150% never gives a negative large-site share.
+  return n === null ? null : Math.min(1, Math.max(0, n / 100));
 }
 
 function eurMWh(v: number | null): string {

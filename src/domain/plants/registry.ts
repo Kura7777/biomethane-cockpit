@@ -1,5 +1,4 @@
 import { BiomethanePlant, DeveloperPortfolio, CountryMacroStat } from './types';
-import { VERIFIED_COMMERCIAL_PLANTS } from './verifiedPlants';
 import { BIOMETHANE_PLANTS } from './plantsData';
 
 export { BIOMETHANE_PLANTS };
@@ -694,7 +693,6 @@ export const COUNTRY_MACRO_STATS: CountryMacroStat[] = [
   }
 ];
 
-export { VERIFIED_COMMERCIAL_PLANTS };
 
 export const COMBINED_BIOMETHANE_PLANTS: BiomethanePlant[] = BIOMETHANE_PLANTS;
 

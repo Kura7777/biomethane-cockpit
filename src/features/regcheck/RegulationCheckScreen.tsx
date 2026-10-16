@@ -85,6 +85,9 @@ const GEMINI_KEY: AiKeyProvider = {
 };
 
 export function generateFixHandoff(report: RegcheckReport): string {
+  if (report.isSample) {
+    return 'REFUSED: this is the built-in SAMPLE fixture, not a real regulation check. Run a real check before exporting a fix hand-off.';
+  }
   const changedItems = report.items.filter(i => i.status === 'CHANGED');
   const newItems = report.newItems;
 
@@ -173,7 +176,7 @@ export function RegulationCheckScreen() {
 
     // Check for fixture URL param (?regcheckFixture=1 or ?fixture=1)
     const urlParams = new URLSearchParams(window.location.search || window.location.hash.split('?')[1] || '');
-    if (urlParams.get('regcheckFixture') === '1' || urlParams.get('fixture') === '1') {
+    if (import.meta.env.DEV && (urlParams.get('regcheckFixture') === '1' || urlParams.get('fixture') === '1')) {
       setReport(FIXTURE_REGCHECK_REPORT);
       return;
     }
@@ -239,9 +242,10 @@ export function RegulationCheckScreen() {
   };
 
   const handleLoadFixture = () => {
+    if (!import.meta.env.DEV) return;
     setReport(FIXTURE_REGCHECK_REPORT);
     setErrorMessage(null);
-    showToast('Loaded fixture report (1 Changed · 1 New · 1 Unclear · 26 Still Correct)');
+    showToast('Loaded SAMPLE fixture report (1 Changed · 1 New · 1 Unclear · 26 Still Correct)');
   };
 
   const handleClearReport = () => {
@@ -358,16 +362,18 @@ export function RegulationCheckScreen() {
                 </button>
               </div>
 
+              {import.meta.env.DEV && (
               <button
                 type="button"
                 className="btn btn-secondary"
                 style={{ padding: '6px 10px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                 onClick={handleLoadFixture}
-                title="Load sample regulatory check fixture report for testing"
+                title="Load SAMPLE regulatory check fixture report (dev only)"
               >
                 <RefreshCw size={12} />
-                <span>Load fixture</span>
+                <span>Load SAMPLE fixture</span>
               </button>
+              )}
 
               {report && (
                 <button
@@ -455,6 +461,7 @@ export function RegulationCheckScreen() {
               </div>
             </div>
           </div>
+          {import.meta.env.DEV && (
           <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '4px' }}>
             <button
               type="button"
@@ -463,9 +470,10 @@ export function RegulationCheckScreen() {
               style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
               <RefreshCw size={13} />
-              <span>Preview sample audit report (No API key needed)</span>
+              <span>Preview SAMPLE report (dev only)</span>
             </button>
           </div>
+          )}
         </div>
       )}
 
@@ -484,6 +492,11 @@ export function RegulationCheckScreen() {
       {/* Report Section */}
       {report && (
         <>
+          {report.isSample && (
+            <div role="alert" style={{ padding: '8px 12px', border: '1px solid var(--color-warning, #b45309)', borderRadius: 6, fontWeight: 600 }}>
+              SAMPLE DATA, not a real regulation check. Nothing below was researched; the fix hand-off is disabled.
+            </div>
+          )}
           {/* Summary Bar */}
           <div className="regcheck-summary-bar">
             <div className="regcheck-summary-text">

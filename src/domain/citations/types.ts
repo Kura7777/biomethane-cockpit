@@ -54,6 +54,8 @@ export interface LegalCitation {
   jurisdictionName: string;
   category: LegalCategory;
   status: StatutoryStatus;
+  /** True when the entry's status or contents could not be confirmed against the primary source: the UI says so and the status is not claimed as in force. */
+  needsVerification?: boolean;
   effectiveDate: string;             // e.g. "20 November 2023 (Transposition by 21 May 2025)"
   primaryArticle: string;            // e.g. "Article 30(1)–(10), Article 31a"
   summary: string;                   // Comprehensive trading desk explanation

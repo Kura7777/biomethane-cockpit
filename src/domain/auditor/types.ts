@@ -11,7 +11,10 @@ export interface StatutoryQuoteProof {
   quote: string;
   sourceFile: string;
   articleCitation: string;
+  /** True only when the full normalised quote is contained in a vault source. */
   isVerbatimVerified: boolean;
+  /** Only the opening/closing words matched a source: shown as "partial match", never verified. */
+  isPartialMatch?: boolean;
 }
 
 export type AuditorModalTab = 'GATE_BREAKDOWN' | 'EFET_SCHEDULE' | 'DOSSIER_QA' | 'SETTINGS';
@@ -30,7 +33,8 @@ export interface TradeAuditContext {
   feedstockCategory: string;
   feedstock?: string;
   feedstockMix?: string;
-  carbonIntensity: number;
+  /** Undefined when the deal supplies no CI: the auditor never assumes one. */
+  carbonIntensity?: number;
   ghgIntensity?: number;
   deliveredValueEurMwh?: number;
   deliveredValue?: number;
@@ -62,29 +66,36 @@ export function normalizeAuditorTab(tab?: string): AuditorModalTab {
   return 'GATE_BREAKDOWN';
 }
 
+/**
+ * Required deal inputs the auditor refuses to invent. Returns human labels of what is missing.
+ */
+export function getMissingAuditInputs(ctx: Partial<TradeAuditContext> | undefined): string[] {
+  const missing: string[] = [];
+  if (!ctx?.originCountry) missing.push('origin country');
+  if (!ctx?.targetMarketId) missing.push('target market');
+  if (!ctx?.feedstockCategory) missing.push('feedstock');
+  if (typeof ctx?.carbonIntensity !== 'number' || isNaN(ctx.carbonIntensity)) missing.push('carbon intensity (CI)');
+  const vol = ctx?.annualVolumeMWh;
+  if (typeof vol !== 'number' || isNaN(vol) || vol <= 0) missing.push('volume');
+  return missing;
+}
+
 export function normalizeTradeAuditContext(raw?: any, fallback?: TradeAuditContext): TradeAuditContext {
-  const originCountry = (raw?.originCountry || fallback?.originCountry || 'DE').toUpperCase();
-  const targetMarketId = raw?.targetMarketId || raw?.destinationMarket || fallback?.targetMarketId || 'DE_THG';
+  // No defaults for origin, market, feedstock, CI or volume: a missing input stays missing
+  // (see getMissingAuditInputs) so the auditor can never certify a deal built from invented numbers.
+  const originCountry = String(raw?.originCountry || fallback?.originCountry || '').toUpperCase();
+  const targetMarketId = raw?.targetMarketId || raw?.destinationMarket || fallback?.targetMarketId || '';
   const targetMarketName = raw?.targetMarketName || fallback?.targetMarketName;
   const originPlantId = raw?.originPlantId || raw?.plantId || fallback?.originPlantId;
   const plantName = raw?.plantName || fallback?.plantName;
 
-  const annualVolumeMWh = typeof raw?.annualVolumeMWh === 'number' && !isNaN(raw.annualVolumeMWh)
-    ? raw.annualVolumeMWh
-    : typeof raw?.volumeMWh === 'number' && !isNaN(raw.volumeMWh)
-    ? raw.volumeMWh
-    : typeof raw?.volume === 'number' && !isNaN(raw.volume)
-    ? raw.volume
-    : (fallback?.annualVolumeMWh ?? 50000);
+  const num = (v: unknown): number | undefined => (typeof v === 'number' && !isNaN(v) ? v : undefined);
+  const annualVolumeMWh = num(raw?.annualVolumeMWh) ?? num(raw?.volumeMWh) ?? num(raw?.volume) ?? fallback?.annualVolumeMWh;
 
-  const feedstockCategory = raw?.feedstockCategory || raw?.feedstock || fallback?.feedstockCategory || 'MANURE_SLURRY';
+  const feedstockCategory = raw?.feedstockCategory || raw?.feedstock || fallback?.feedstockCategory || '';
   const feedstockMix = raw?.feedstockMix || fallback?.feedstockMix;
 
-  const carbonIntensity = typeof raw?.carbonIntensity === 'number' && !isNaN(raw.carbonIntensity)
-    ? raw.carbonIntensity
-    : typeof raw?.ghgIntensity === 'number' && !isNaN(raw.ghgIntensity)
-    ? raw.ghgIntensity
-    : (fallback?.carbonIntensity ?? -80);
+  const carbonIntensity = num(raw?.carbonIntensity) ?? num(raw?.ghgIntensity) ?? fallback?.carbonIntensity;
 
   const deliveredValueEurMwh = typeof raw?.deliveredValueEurMwh === 'number' && !isNaN(raw.deliveredValueEurMwh)
     ? raw.deliveredValueEurMwh
@@ -134,6 +145,9 @@ export interface AuditorResponse {
   quoteProofs: StatutoryQuoteProof[];
   recommendations: string[];
   rawText: string;
+  /** Optional LLM commentary on a deal. Never feeds the verdict or the PDF memo. Label: AI draft, not a legal opinion. */
+  aiCommentary?: string;
+  aiQuoteProofs?: StatutoryQuoteProof[];
   sourceEngine?: 'GEMINI_LLM' | 'DETERMINISTIC_VAULT';
   apiError?: string;
 }
@@ -144,5 +158,6 @@ export interface AuditorChatMessage {
   content: string;
   timestamp: string;
   auditResponse?: AuditorResponse;
-  isVerbatimVerified?: boolean;
+  /** Per-quote check summary (never a whole-answer "verified"). */
+  quoteSummary?: string;
 }

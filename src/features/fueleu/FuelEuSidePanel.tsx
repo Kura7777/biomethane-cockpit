@@ -54,7 +54,7 @@ function dominantSegment(members: ShippingCounterparty[]): string {
 
 /** 420px right-hand side panel: selected row detail, do-nothing penalty path chart, DoC holders, contacts, footer actions. */
 export function FuelEuSidePanel({ row, onClose, onBuildTermSheet, onAddToPool, embedded = false }: FuelEuSidePanelProps) {
-  const [assume2025NonCompliant, setAssume2025NonCompliant] = useState(true);
+  const [assume2025NonCompliant, setAssume2025NonCompliant] = useState(false); // n=1 matches every other 2026 penalty on the desk
 
   const { group, company, members } = row;
   const isSurplus = row.kind === 'COMPANY' && company ? company.compliance_balance_2026_tco2e >= 0 : group.sumOfCompanyBalances2026 >= 0;

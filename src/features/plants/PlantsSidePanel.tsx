@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { plantEntityLabel } from '../../domain/plants/statutoryDossiers';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { Maximize2, Minimize2, X } from 'lucide-react';
@@ -79,7 +80,7 @@ export function PlantsSidePanel({
     return (
       <aside className="ds-aside plants-aside">
         <div className="ds-aside-section">
-          <div className="ds-panel-section-heading">Country totals</div>
+          <div className="ds-panel-section-heading">Country totals (reported by national sources, not the census)</div>
           <div className="plants-country-hint">Click a country to filter the census.</div>
         </div>
         <div className="ds-aside-body">
@@ -226,7 +227,7 @@ export function PlantsSidePanel({
           <div className="ds-panel-section-heading">Counterparty</div>
           <div className="plants-panel-row">
             <span className="plants-panel-row-label">Legal entity</span>
-            <span>{plant.legalEntityName || plant.operator || '—'}</span>
+            <span>{(() => { const e = plantEntityLabel(plant); return e.text ? `${e.text}${e.unverified ? ' (unverified)' : ''}` : '—'; })()}</span>
           </div>
           <div className="plants-panel-row">
             <span className="plants-panel-row-label">Registration ID</span>

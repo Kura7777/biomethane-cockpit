@@ -27,6 +27,8 @@ export interface RegcheckReport {
   items: RegcheckItem[];
   newItems: RegcheckNewItem[];
   summary: string;
+  /** True for the built-in dev fixture: every field is stamped SAMPLE and the fix hand-off refuses it. */
+  isSample?: boolean;
 }
 
 export interface WatchSource {

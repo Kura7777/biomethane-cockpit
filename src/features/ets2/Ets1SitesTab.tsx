@@ -180,7 +180,7 @@ export function Ets1SitesTab() {
   const sortedCompanies = useMemo(() => {
     const dir = sort.dir === 'desc' ? -1 : 1;
     const val = (c: Ets1Company): number | string =>
-      sort.key === 'name' ? c.name.toLowerCase() : sort.key === 'deal' ? c.fitVerifiedLatestTco2 : c.verifiedLatestTco2;
+      sort.key === 'name' ? c.name.toLowerCase() : sort.key === 'deal' ? ets1AbatableTco2(c) : c.verifiedLatestTco2;
     return [...companies].sort((a, b) => (val(a) < val(b) ? -dir : val(a) > val(b) ? dir : 0));
   }, [companies, sort]);
 

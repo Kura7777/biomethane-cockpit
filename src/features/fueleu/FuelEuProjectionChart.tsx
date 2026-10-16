@@ -78,7 +78,7 @@ export function FuelEuProjectionChart({ fleetInput, groupPoints, multiplierSerie
   const width = isMobile ? 360 : widthProp;
   const height = isMobile ? (variant === 'panel' ? 210 : 250) : heightProp;
   const [selIdx, setSelIdx] = useState<number | null>(null);
-  const [assume2025NonCompliant, setAssume2025NonCompliant] = useState(true);
+  const [assume2025NonCompliant, setAssume2025NonCompliant] = useState(false); // n=1 matches every other 2026 penalty on the desk
 
   const points: ProjectionPoint[] = useMemo(() => {
     if (groupPoints) return groupPoints;

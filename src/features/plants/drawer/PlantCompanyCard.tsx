@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Globe
 } from 'lucide-react';
+import { plantEntityLabel } from '../../../domain/plants/statutoryDossiers';
 import { BiomethanePlant } from '../../../domain/plants/types';
 import { PlantDrawerTheme } from './plantDrawerTheme';
 import { getBestResearchContact } from '../plantBriefBuilders';
@@ -26,6 +27,7 @@ export function PlantCompanyCard({
   t,
   copyToClipboard,
 }: PlantCompanyCardProps) {
+  const entity = plantEntityLabel(plant);
   return (
     <>
       {/* Core Entity Identity */}
@@ -42,12 +44,12 @@ export function PlantCompanyCard({
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <strong style={{ fontSize: '12px', color: t.textMain, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={plant.verifiedDossier?.officialLegalEntity || plant.legalEntityName || plant.operator || 'Not identified'}>
-              {plant.verifiedDossier?.officialLegalEntity || plant.legalEntityName || plant.operator || 'Not identified — search register'}
+              {(entity.text ? `${entity.text}${entity.unverified ? ' (unverified)' : ''}` : 'Not identified — search register')}
             </strong>
-            {(plant.verifiedDossier?.officialLegalEntity || plant.legalEntityName || plant.operator) && (
+            {entity.text && (
               <button
                 type="button"
-                onClick={() => copyToClipboard(plant.verifiedDossier?.officialLegalEntity || plant.legalEntityName || plant.operator || '', 'Legal Entity')}
+                onClick={() => copyToClipboard(entity.text || '', 'Legal Entity')}
                 style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', padding: '1px' }}
                 title="Copy"
               >

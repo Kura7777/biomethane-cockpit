@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/context';
 import { loadPlantsAsync } from '../../domain/plants/registry';
+import { defaultVolumeMwh } from '../../domain/trade/dealDefaults';
 import { FEEDSTOCK_REGISTRY } from '../../domain/consignment/feedstocks';
 import {
   buildBriefMarks, buildBriefOrderBook, buildBriefRoutes, buildConsignmentLadder, buildFueleuSeries,
@@ -22,7 +23,8 @@ import './brief.css';
 
 /** The arbitrage scan on the brief uses the desk's default origination feedstock and a 10 GWh lot. */
 const ROUTE_FEEDSTOCK = 'manure';
-const ROUTE_VOLUME_MWH = 10000;
+// Reference volume for the route board is the desk's deal.defaultVolumeMwh assumption (Pricing desk), not a literal.
+const routeVolumeMwh = () => defaultVolumeMwh();
 
 const SECTIONS: [string, string][] = [
   ['netback', 'Netback ladder'], ['board', 'Market board'], ['fueleu', 'FuelEU'], ['book', 'Broker book'],
@@ -56,7 +58,7 @@ export function MorningBriefScreen() {
     [consignment, state.marks, state.costs],
   );
   const headline = useMemo(() => ladderHeadline(ladder), [ladder]);
-  const routes = useMemo(() => buildBriefRoutes(state.marks, state.costs, ROUTE_FEEDSTOCK, ROUTE_VOLUME_MWH), [state.marks, state.costs]);
+  const routes = useMemo(() => buildBriefRoutes(state.marks, state.costs, ROUTE_FEEDSTOCK, routeVolumeMwh()), [state.marks, state.costs]);
   const fueleu = useMemo(() => buildFueleuSeries(), []);
   const fueleuTraded = useMemo(() => latestFueleu(fueleu, 'TRADE'), [fueleu]);
   const book = useMemo(() => buildBriefOrderBook(state.pricingBook), [state.pricingBook]);

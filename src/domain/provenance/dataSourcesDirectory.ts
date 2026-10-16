@@ -24,7 +24,7 @@ export interface DataSourceRecord {
   authorityType: 'EU_INSTITUTION' | 'NATIONAL_REGULATOR' | 'TSO_DSO' | 'INDUSTRY_ASSOCIATION' | 'PRICE_REPORTING_AGENCY' | 'BROKER_DESK';
   sourceDocumentOrUrl: string;
   legalBasis?: string;
-  updateFrequency: 'REAL_TIME_API' | 'DAILY' | 'MONTHLY' | 'ANNUAL' | 'STATUTORY_FIXED';
+  updateFrequency: 'STATIC_SNAPSHOT' | 'REAL_TIME_API' | 'DAILY' | 'MONTHLY' | 'ANNUAL' | 'STATUTORY_FIXED';
   coverageCount: string;
   provenanceTier: ProvenanceTier;
   description: string;
@@ -47,15 +47,15 @@ export const DATA_SOURCES_DIRECTORY: DataSourceRecord[] = [
     sourceDocumentOrUrl: 'GIE_EBA_BIO_2026_A0_FULL_115.pdf & European Biomethane Map Registry',
     legalBasis: 'European Biomethane Industrial Partnership (BIP) / RePowerEU',
     updateFrequency: 'ANNUAL',
-    coverageCount: '1,975+ Facilities (28 Countries)',
+    coverageCount: '1,974 facilities (26 countries) in the app census, static snapshot',
     provenanceTier: 'INDUSTRY_BODY_CENSUS',
-    description: 'The definitive European cartographic and registry census of all operating and injecting biomethane production facilities across 28 European jurisdictions.',
+    description: 'The definitive European cartographic and registry census of all operating and injecting biomethane production facilities across the European jurisdictions it covers (26 in the app snapshot).',
     fieldsProvided: [
       'Facility Name',
       'Country Code (ISO 3166-1 alpha-2)',
       'Operational Status (Active / Injecting)',
       'National Grid Connection Zone',
-      'Unique Indexing ID (FR-1..829, DE-1..285, GB-1..108, DK-1..60, etc.)'
+      'Census record id (plant_<country>_<n>, e.g. plant_fr_*, plant_de_*, plant_uk_* for Great Britain); ids are assigned by this app, not published by GIE/EBA'
     ],
     fieldsUnverified: [
       'Unmetered nameplate hourly capacity (Nm³/h) for facilities where national TSO does not publish individual meter declarations',
@@ -118,18 +118,14 @@ export const DATA_SOURCES_DIRECTORY: DataSourceRecord[] = [
     authorityType: 'TSO_DSO',
     sourceDocumentOrUrl: 'Energi Data Service Biogas Injection API (api.energidataservice.dk)',
     legalBasis: 'Danish Gas Supply Act (Lov om gasforsyning)',
-    updateFrequency: 'REAL_TIME_API',
-    coverageCount: '60 Active Injection Plants in Denmark',
+    updateFrequency: 'DAILY',
+    coverageCount: 'Denmark national aggregate (no per-plant data)',
     provenanceTier: 'TSO_OFFICIAL_DATA',
-    description: 'Real-time telemetry and metered gas injection feed for all central and local biomethane injection stations in Denmark.',
+    description: 'National daily aggregate of biogas/biomethane injection from Energi Data Service. There is no per-plant or real-time feed: the app shows the aggregate only and labels it not per-plant.',
     fieldsProvided: [
-      'GSRN Metering Point ID',
-      'Facility Name & Municipality',
-      'Hourly Metered Injected Volume (Nm³/h & MWh)',
-      'Gas Quality & Energy Content (kWh/Nm³)',
-      'Grid Injection Level (Transmission 80 bar / Distribution 4-19 bar)'
+      'Daily national biogas / biomethane injection aggregate (MWh)'
     ],
-    fieldsUnverified: [],
+    fieldsUnverified: ['Per-plant injection volumes (not published by this API)', 'Real-time or hourly data'],
     docUrl: 'https://www.energidataservice.dk/'
   },
   {
@@ -215,7 +211,7 @@ export const DATA_SOURCES_DIRECTORY: DataSourceRecord[] = [
     updateFrequency: 'STATUTORY_FIXED',
     coverageCount: 'UK RTFC Yield Factors & Multipliers',
     provenanceTier: 'STATUTORY_DIRECTIVE',
-    description: 'Statutory order establishing biomethane energy content conversion (72.0 kg/MWh) and double-counting certificate multipliers (144.0 dRTFC/MWh for waste/slurry).',
+    description: 'Statutory order setting RTFO certificate rules for gaseous fuels (certificates per kg of biomethane, with waste/residue feedstocks earning double certificates). The 50 MJ/kg energy content used to convert kg to MWh is a desk assumption, not a DfT figure.',
     fieldsProvided: [
       'Biomethane Lower Heating Value (50 MJ/kg ≈ 13.889 kWh/kg)',
       'Gaseous Fuel Certificate Yield (1 dRTFC/kg standard, 2 dRTFC/kg waste)',
@@ -300,10 +296,10 @@ export const DATA_SOURCES_DIRECTORY: DataSourceRecord[] = [
     authorityType: 'PRICE_REPORTING_AGENCY',
     sourceDocumentOrUrl: 'EEX TTF / THE Natural Gas Spot Price (EGIX / CEGHIX)',
     legalBasis: 'EU Regulation No 1227/2011 on wholesale energy market integrity (REMIT)',
-    updateFrequency: 'REAL_TIME_API',
+    updateFrequency: 'STATIC_SNAPSHOT',
     coverageCount: 'All Interconnected European Gas Hubs (TTF, THE, PEG, PSV, PVB, NBP, ZTP)',
     provenanceTier: 'BROKER_REPORTED_QUOTE',
-    description: 'Wholesale natural gas market reference indices used for the physical molecule baseline in biomethane delivered netback pricing stacks.',
+    description: 'Reference indices only: this app does not fetch them. The desk marks are entered by hand on the Pricing page. Wholesale natural gas market reference indices used for the physical molecule baseline in biomethane delivered netback pricing stacks.',
     fieldsProvided: [
       'Hub Natural Gas Base Price (€/MWh)',
       'Inter-Hub Basis Spreads (THE-TTF, PEG-TTF, PSV-TTF)',
@@ -373,10 +369,10 @@ export const DATA_SOURCES_DIRECTORY: DataSourceRecord[] = [
     authorityType: 'EU_INSTITUTION',
     sourceDocumentOrUrl: 'Union Database (UDB) under Article 31a of Directive (EU) 2018/2001',
     legalBasis: 'Directive (EU) 2018/2001 Art. 28 & 31a; Commission Implementing Regulation (EU) 2022/996',
-    updateFrequency: 'REAL_TIME_API',
+    updateFrequency: 'STATIC_SNAPSHOT',
     coverageCount: 'EU Single Connected Gas Network Mass Balance Zone',
     provenanceTier: 'STATUTORY_DIRECTIVE',
-    description: 'Mandatory central EU database tracking all gaseous biofuel and biomethane consignments, proofs of sustainability (PoS), mass balance accounts, and title transfers across EU Member States.',
+    description: 'The UDB gas module is NOT live (launch postponed to end-2026 per EBA); the app models statuses and rules only and has no UDB connection. Central EU database that will track all gaseous biofuel and biomethane consignments, proofs of sustainability (PoS), mass balance accounts, and title transfers across EU Member States.',
     fieldsProvided: [
       'Consignment PoS Validation Rules',
       'Interconnected EU Gas Grid Mass Balance Boundary Definitions',
@@ -511,27 +507,54 @@ export const DATA_SOURCES_DIRECTORY: DataSourceRecord[] = [
     fieldsUnverified: [],
     docUrl: 'https://www.agcs.at/'
   },
+  // Registers the plant matcher actually checked plants against (static snapshots, 2026-09-26).
   {
-    id: 'pan_eu_tso_telemetry_hub',
-    name: 'Pan-European Multi-TSO Live Biomethane Flow Telemetry Hub',
-    category: 'LOGISTICS_INTERCONNECTORS',
-    categoryLabel: 'Logistics & Tariffs',
-    authority: 'Energinet (DK), ODRE / GRTgaz (FR), ENTSOG (EU), THE / OGE (DE), GTS (NL), SNAM (IT), Enagás (ES), NGT (GB)',
-    authorityType: 'TSO_DSO',
-    sourceDocumentOrUrl: 'Open Data REST APIs & SCADA Telemetry Stream Interfaces',
-    legalBasis: 'Regulation (EC) No 715/2009 Art. 18 & Directive (EU) 2024/1788 (Hydrogen & Decarbonised Gas Package)',
-    updateFrequency: 'REAL_TIME_API',
-    coverageCount: '22 European Jurisdictions & 560+ Cross-Border Interconnection Nodes',
-    provenanceTier: 'TSO_OFFICIAL_DATA',
-    description: 'Real-time multi-TSO telemetry engine collecting metered injection flow rates (Nm³/h, MWh/h), gross calorific values, and cross-border pipeline transmission velocity.',
-    fieldsProvided: [
-      'Real-time Hourly Injection Volume (MWh/h & Nm³/h)',
-      'Gross Calorific Value (GCV kWh/Nm³)',
-      'Verified Feedstock Classification & Annex IX Assignment',
-      'Cross-Border Physical Interconnection Flow Directions'
-    ],
-    fieldsUnverified: [],
-    docUrl: 'https://transparency.entsog.eu/'
+    id: 'dk_cvr_register',
+    name: 'Danish CVR company register (via lasso.dk)',
+    category: 'PLANTS_INFRASTRUCTURE',
+    categoryLabel: 'Plants & Assets',
+    authority: 'Erhvervsstyrelsen (Danish Business Authority), accessed via lasso.dk',
+    authorityType: 'NATIONAL_REGULATOR',
+    sourceDocumentOrUrl: 'CVR register lookups, checked 2026-09-26',
+    updateFrequency: 'STATIC_SNAPSHOT',
+    coverageCount: 'Danish plants only (61 checked)',
+    provenanceTier: 'STATUTORY_DIRECTIVE',
+    description: 'Used to confirm Danish plant operators and registration numbers. A one-off check; not refreshed automatically.',
+    fieldsProvided: ['Operator legal name', 'CVR registration number'],
+    fieldsUnverified: ['Anything after the check date'],
+    docUrl: 'https://datacvr.virk.dk/'
+  },
+  {
+    id: 'gb_repd_desnz',
+    name: 'DESNZ Renewable Energy Planning Database (REPD Q2 2026)',
+    category: 'PLANTS_INFRASTRUCTURE',
+    categoryLabel: 'Plants & Assets',
+    authority: 'UK Department for Energy Security and Net Zero (DESNZ)',
+    authorityType: 'NATIONAL_REGULATOR',
+    sourceDocumentOrUrl: 'REPD Q2 2026 extract, checked 2026-09-26',
+    updateFrequency: 'STATIC_SNAPSHOT',
+    coverageCount: 'Great Britain plants only',
+    provenanceTier: 'STATUTORY_DIRECTIVE',
+    description: 'Used to suggest operators for Great Britain plants by name and location. Matches are suggestions to confirm, not verified entities.',
+    fieldsProvided: ['Operator name', 'Site coordinates', 'Installed capacity'],
+    fieldsUnverified: ['Operator legal entity and registration number'],
+    docUrl: 'https://www.gov.uk/government/publications/renewable-energy-planning-database-monthly-extract'
+  },
+  {
+    id: 'fr_annuaire_entreprises',
+    name: 'Annuaire des Entreprises API (France)',
+    category: 'PLANTS_INFRASTRUCTURE',
+    categoryLabel: 'Plants & Assets',
+    authority: 'Direction interministerielle du numerique (DINUM) / INSEE SIRENE',
+    authorityType: 'NATIONAL_REGULATOR',
+    sourceDocumentOrUrl: 'Annuaire des Entreprises API, checked 2026-09-26',
+    updateFrequency: 'STATIC_SNAPSHOT',
+    coverageCount: 'French plants only',
+    provenanceTier: 'STATUTORY_DIRECTIVE',
+    description: 'Used with the ODRE injection-site list to check French operator names and SIREN numbers. One-off check.',
+    fieldsProvided: ['Operator legal name', 'SIREN'],
+    fieldsUnverified: ['Anything after the check date'],
+    docUrl: 'https://annuaire-entreprises.data.gouv.fr/'
   },
   {
     id: 'fueleu_maritime_shipping_registry',

@@ -103,8 +103,9 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
       expect(c.bio_lng_required_neg100_t, c.parent_name).toBe(slimTonnes(r25.bioLngRequiredNeg100Tonnes));
       expect(c.bio_lng_required_neg100_mwh, c.parent_name).toBe(Math.round(r25.bioLngRequiredNeg100Mwh));
       expect(c.bio_lng_required_zero_t, c.parent_name).toBe(slimTonnes(r25.bioLngRequiredZeroCiTonnes));
-      expect(c.client_savings_physical_eur, c.parent_name).toBe(Math.round(r25.physicalSavingsEur));
-      expect(c.desk_margin_physical_eur, c.parent_name).toBe(Math.round(r25.physicalTradingMarginEur));
+      // Live from the desk assumptions off the rounded MWh (aud-sd): within rounding of the exact calc.
+      expect(Math.abs(c.client_savings_physical_eur - r25.physicalSavingsEur), c.parent_name).toBeLessThanOrEqual(100);
+      expect(Math.abs(c.desk_margin_physical_eur - r25.physicalTradingMarginEur), c.parent_name).toBeLessThanOrEqual(100);
 
       const fleet = calculateFleetCapability(c.vessels_in_scope, c.vlsfo_tonnes, c.mgo_tonnes, c.lng_tonnes);
       expect(c.fleetCapability, c.parent_name).toBe(fleet.fleetCapability);

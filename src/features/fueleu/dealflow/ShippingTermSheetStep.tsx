@@ -1,4 +1,5 @@
 import { FUELEU_ACTIVE_PERIOD } from '../../../domain/fueleu/calculator';
+import { resolveCounterpartyContacts } from '../../../domain/fueleu/groups';
 import { MRV_REPORTING_YEAR } from '../../../domain/fueleu/mrvVintage';
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +12,8 @@ import {
   calculateMarineBunkerQuotation
 } from '../../../domain/fueleu/calculator';
 import { buildDealUrl } from '../../../domain/trade/dealParams';
-import { defaultVolumeMwh, FUELEU_BIO_LNG_DEFAULT_ORIGIN } from '../../../domain/trade/dealDefaults';
+import { handoffVolumeMwh } from '../../../domain/fueleu/uiHelpers';
+import { FUELEU_BIO_LNG_DEFAULT_ORIGIN } from '../../../domain/trade/dealDefaults';
 import { buildOriginationUrl } from '../../commercial/originationUrl';
 import {
   FileText,
@@ -96,7 +98,8 @@ export function ShippingTermSheetStep({
   }, [counterparty]);
 
   // Only a contact on file is rendered — never construct an email/phone/domain from other fields.
-  const primaryContact = counterparty.contacts?.[0];
+  const resolvedContacts = resolveCounterpartyContacts(counterparty);
+  const primaryContact = resolvedContacts[0];
   const contactEmail = primaryContact?.email || 'No verified contact on file';
 
   const poolClearingPriceEurPerTco2e = isSurplus ? pool.bidEurPerTco2e : pool.offerEurPerTco2e;
@@ -283,7 +286,7 @@ Please find below our indicative OTC marine fuel quotation (desk assumptions —
 1. COUNTERPARTY & EXPOSURE PROFILE
 - Counterparty: ${counterparty.parent_name} (#${counterparty.rank})
 - Fleet in EU MRV Scope: ${counterparty.vessels_in_scope} vessels (${counterparty.segment})
-- ${FUELEU_ACTIVE_PERIOD} Estimated Exposure: €${(combinedExposureEur / 1e6).toFixed(2)}M (indicative FuelEU penalty + EU ETS 70% liability)
+- ${FUELEU_ACTIVE_PERIOD} Estimated Exposure: €${(combinedExposureEur / 1e6).toFixed(2)}M (indicative FuelEU penalty + EU ETS liability at the 2026 100% surrender rate)
 - Primary Bunkering Corridor: ${counterparty.primary_bunkering_hubs || '—'}
 
 2. COMMERCIAL PROPOSAL (${pathway === 'PHYSICAL' ? 'Bio-LNG bunkering (Art. 4, Annex I-II)' : 'Article 21 Compliance Pooling'})
@@ -306,11 +309,13 @@ European Biomethane & Marine Fuels Trading Desk`
     showToast(`Opening commercial proposal to ${primaryContact.email}`, 'INFO');
   };
 
+  // Hand-offs use the computed need as is; with no deficit there is nothing to price.
+  const handoffMwh = handoffVolumeMwh(counterparty.bio_lng_required_neg100_mwh);
+  const NO_DEFICIT_MSG = 'No deficit — nothing to cover';
+
   const handleExecuteTrade = () => {
-    const volumeMwh = Math.max(
-      1000,
-      Math.round(counterparty.bio_lng_required_neg100_mwh || defaultVolumeMwh())
-    );
+    if (handoffMwh === undefined) { showToast(NO_DEFICIT_MSG, 'INFO'); return; }
+    const volumeMwh = handoffMwh;
     const url = buildDealUrl({
       marketId: 'FUELEU',
       originCountry: FUELEU_BIO_LNG_DEFAULT_ORIGIN.originCountry,
@@ -319,6 +324,7 @@ European Biomethane & Marine Fuels Trading Desk`
       ci: FUELEU_BIO_LNG_DEFAULT_ORIGIN.ci,
       ciIsEstimated: true,
       volume: volumeMwh,
+      volumeIsEstimated: true,
       counterparty: counterparty.parent_name,
       legalEntityName: counterparty.parent_name,
       complianceYear: FUELEU_ACTIVE_PERIOD,
@@ -330,15 +336,14 @@ European Biomethane & Marine Fuels Trading Desk`
 
   // "Find a plant": send this counterparty's bio-LNG need into Origination instead of assuming NL/manure.
   const handleFindPlant = () => {
-    const volumeMwh = Math.max(1000, Math.round(counterparty.bio_lng_required_neg100_mwh || defaultVolumeMwh()));
+    if (handoffMwh === undefined) { showToast(NO_DEFICIT_MSG, 'INFO'); return; }
+    const volumeMwh = handoffMwh;
     navigate(buildOriginationUrl({ market: 'FUELEU', mwh: volumeMwh, buyer: counterparty.parent_name }));
   };
 
   const handleAuditFuelEuCompliance = () => {
-    const volumeMwh = Math.max(
-      1000,
-      Math.round(counterparty.bio_lng_required_neg100_mwh || defaultVolumeMwh())
-    );
+    if (handoffMwh === undefined) { showToast(NO_DEFICIT_MSG, 'INFO'); return; }
+    const volumeMwh = handoffMwh;
     window.dispatchEvent(
       new CustomEvent('open-compliance-auditor', {
         detail: {
@@ -486,6 +491,7 @@ European Biomethane & Marine Fuels Trading Desk`
           <button
             type="button"
             onClick={handleExecuteTrade}
+            disabled={handoffMwh === undefined}
             className="btn btn-secondary"
             style={{ height: '32px', padding: '0 12px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '5px', opacity: 0.9 }}
             title="Source physical biomethane on the European gas grid to feed liquefaction"
@@ -497,6 +503,7 @@ European Biomethane & Marine Fuels Trading Desk`
           <button
             type="button"
             onClick={handleFindPlant}
+            disabled={handoffMwh === undefined}
             className="btn btn-secondary"
             style={{ height: '32px', padding: '0 12px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
             title="Find a sourcing plant for this counterparty's bio-LNG volume in Origination"
@@ -681,6 +688,7 @@ European Biomethane & Marine Fuels Trading Desk`
               <button
                 type="button"
                 onClick={handleAuditFuelEuCompliance}
+            disabled={handoffMwh === undefined}
                 className="btn btn-outline"
                 style={{
                   fontSize: '11px',
@@ -740,6 +748,7 @@ European Biomethane & Marine Fuels Trading Desk`
           <button
             type="button"
             onClick={handleAuditFuelEuCompliance}
+            disabled={handoffMwh === undefined}
             className="btn btn-secondary"
             style={{ height: '32px', padding: '0 12px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '5px', borderColor: 'rgba(217, 119, 6, 0.4)', color: '#d97706' }}
             title="Open Statutory Compliance Auditor for FuelEU Maritime"
@@ -751,6 +760,7 @@ European Biomethane & Marine Fuels Trading Desk`
           <button
             type="button"
             onClick={handleExecuteTrade}
+            disabled={handoffMwh === undefined}
             className="btn btn-secondary"
             style={{ height: '32px', padding: '0 12px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
             title="Source physical biomethane on the European gas grid via Trade Builder"
@@ -762,6 +772,7 @@ European Biomethane & Marine Fuels Trading Desk`
           <button
             type="button"
             onClick={handleFindPlant}
+            disabled={handoffMwh === undefined}
             className="btn btn-secondary"
             style={{ height: '32px', padding: '0 12px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
             title="Find a sourcing plant for this counterparty's bio-LNG volume in Origination"

@@ -1,6 +1,6 @@
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from './shippingTargetsData';
 import { GROUP_CONTACTS } from './groupContactsData';
-import { GroupEntityType, GroupContact, FuelCostBearerType } from './types';
+import { GroupEntityType, GroupContact, FuelCostBearerType, ShippingContact } from './types';
 
 /**
  * Commercial-group roll-up of FUEL_EU_SHIPPING_COUNTERPARTIES, computed at module load so it can
@@ -82,4 +82,23 @@ export const FUEL_EU_SHIPPING_GROUPS: FuelEuShippingGroup[] = buildGroups();
 
 export function getGroupById(id: string): FuelEuShippingGroup | undefined {
   return FUEL_EU_SHIPPING_GROUPS.find(g => g.id === id);
+}
+
+/**
+ * Contacts for a counterparty row: the row's own (none today) else the SOURCED group contacts
+ * (data/fueleu_group_contacts.json), mapped to the ShippingContact shape. Contacts with an
+ * e-mail come first so the proposal e-mail can use them. Nothing is invented: a group with no
+ * sourced contact returns an empty list.
+ */
+export function resolveCounterpartyContacts(c: { group_id: string; contacts?: ShippingContact[] }): ShippingContact[] {
+  if (c.contacts && c.contacts.length > 0) return c.contacts;
+  const mapped: ShippingContact[] = (GROUP_CONTACTS[c.group_id] ?? []).map(g => ({
+    name: g.name || g.role || 'Sir or Madam',
+    role: g.role || g.kind.replace(/_/g, ' ').toLowerCase(),
+    email: g.email,
+    phone: g.phone,
+    sourceUrl: g.sourceUrl,
+    checkedAt: g.checkedAt,
+  }));
+  return mapped.sort((a, b) => Number(Boolean(b.email)) - Number(Boolean(a.email)));
 }

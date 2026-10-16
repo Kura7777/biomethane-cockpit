@@ -1,4 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { plantEntityLabel } from '../../domain/plants/statutoryDossiers';
+import { legalEntityForHandoff } from '../../domain/plants/statutoryDossiers';
+import { buildCsv, downloadCsvFile } from '../../domain/companies/csv';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   COMBINED_BIOMETHANE_PLANTS,
@@ -289,15 +292,13 @@ export function PlantsScreen() {
       }
 
       const gwh = p.annualEnergyGWh || 0;
-      const nm3 = p.capacityNm3h || 0;
+      // Scale is read from annual energy (GWh) only: capacity units differ between source registers.
       if (selectedScale === 'UTILITY') {
-        if (gwh < 50 && nm3 < 600) return false;
+        if (gwh < 50) return false;
       } else if (selectedScale === 'MEDIUM') {
-        const isMidGwh = gwh >= 20 && gwh < 50;
-        const isMidNm3 = nm3 >= 250 && nm3 < 600;
-        if (!isMidGwh && !isMidNm3) return false;
+        if (!(gwh >= 20 && gwh < 50)) return false;
       } else if (selectedScale === 'DISTRIBUTED') {
-        if ((gwh >= 20 && gwh > 0) || (nm3 >= 250 && nm3 > 0)) return false;
+        if (gwh >= 20) return false;
       }
 
       const techStr = (p.upgradingTechnology || '').toLowerCase();
@@ -446,9 +447,9 @@ export function PlantsScreen() {
     (plant: BiomethanePlant) => {
       const dealUrl = buildDealUrl({
         ...plantDealParams(plant),
-        legalEntityName: plant.legalEntityName || plant.operator || undefined,
-        contactEmail: plant.contactEmail || undefined,
-        contactPhone: plant.contactPhone || undefined,
+        // Census contact details are unverified leads and the census entity name can be a template:
+        // only a register/research-confirmed entity is handed over; desk-verified contacts come from the drawer.
+        legalEntityName: legalEntityForHandoff(plant),
       });
       navigate(dealUrl);
       showToast(`Loaded ${plant.name} into Trade Builder`, 'success');
@@ -464,36 +465,29 @@ export function PlantsScreen() {
       'Contact Email', 'Contact Phone', 'Address', 'Verified',
     ];
     const rows = sortedPlants.map(p => [
-      `"${p.id || ''}"`,
-      `"${(p.name || '').replace(/"/g, '""')}"`,
-      `"${(p.country || '').replace(/"/g, '""')}"`,
-      `"${p.countryCode || ''}"`,
-      `"${(p.operator || '').replace(/"/g, '""')}"`,
-      `"${(p.legalEntityName || '').replace(/"/g, '""')}"`,
-      `"${(p.companyRegistrationId || '').replace(/"/g, '""')}"`,
-      `"${(p.networkOperator || '').replace(/"/g, '""')}"`,
-      `"${(p.gridConnectionType || '').replace(/"/g, '""')}"`,
-      p.capacityNm3h ?? '',
-      p.annualEnergyGWh ?? '',
-      `"${(p.primaryFeedstockCategory || '').replace(/"/g, '""')}"`,
-      `"${(p.feedstockDetails || '').replace(/"/g, '""')}"`,
+      p.id,
+      p.name,
+      p.country,
+      p.countryCode,
+      p.operator,
+      p.legalEntityName,
+      p.companyRegistrationId,
+      p.networkOperator,
+      p.gridConnectionType,
+      p.capacityNm3h ?? null,
+      p.annualEnergyGWh ?? null,
+      p.primaryFeedstockCategory,
+      p.feedstockDetails,
       plantCi(p).ci,
-      `"${(p.upgradingTechnology || '').replace(/"/g, '""')}"`,
-      p.commissioningYear ?? '',
-      `"${p.corporateWebsite || ''}"`,
-      `"${p.contactEmail || ''}"`,
-      `"${p.contactPhone || ''}"`,
-      `"${(p.headquartersAddress || '').replace(/"/g, '""')}"`,
+      p.upgradingTechnology,
+      p.commissioningYear ?? null,
+      p.corporateWebsite,
+      p.contactEmail,
+      p.contactPhone,
+      p.headquartersAddress,
       p.isVerified ? 'YES' : 'NO',
     ]);
-    const csvContent = 'data:text/csv;charset=utf-8,﻿' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `biomethane_census_filtered_${sortedPlants.length}_plants.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsvFile(`biomethane_census_filtered_${sortedPlants.length}_plants.csv`, buildCsv(headers, rows));
     showToast(`Exported ${sortedPlants.length} facilities to CSV`, 'success');
   };
 
@@ -863,7 +857,7 @@ export function PlantsScreen() {
                       subtitle={p => (
                         <>
                           <span className="num plants-iso-tag">{p.countryCode}</span>
-                          {p.region && <> · {p.region}</>} · {p.legalEntityName || p.operator || '—'}
+                          {p.region && <> · {p.region}</>} · {plantEntityLabel(p).text ?? '—'}
                         </>
                       )}
                       metric={p => (p.annualEnergyGWh ? p.annualEnergyGWh.toFixed(1) : '—')}
@@ -941,8 +935,8 @@ export function PlantsScreen() {
                               {p.region && <> · {p.region}</>}
                             </div>
                           </div>
-                          <div className="plants-operator-cell" title={p.legalEntityName || p.operator || ''}>
-                            {p.legalEntityName || p.operator || '—'}
+                          <div className="plants-operator-cell" title={plantEntityLabel(p).text ?? ''}>
+                            {(() => { const e = plantEntityLabel(p); return e.text ? `${e.text}${e.unverified ? ' (unverified)' : ''}` : '—'; })()}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
                             <div className="plants-output-bar-track">

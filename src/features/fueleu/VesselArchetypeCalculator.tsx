@@ -12,7 +12,8 @@ import {
 import { FUELEU_ACTIVE_PERIOD, COMPLIANCE_YEAR_PERIOD_LABELS } from './complianceYears';
 import { VesselArchetype, VesselCalculationInput } from '../../domain/fueleu/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
-import { defaultVolumeMwh, FUELEU_BIO_LNG_DEFAULT_ORIGIN } from '../../domain/trade/dealDefaults';
+import { handoffVolumeMwh } from '../../domain/fueleu/uiHelpers';
+import { FUELEU_BIO_LNG_DEFAULT_ORIGIN } from '../../domain/trade/dealDefaults';
 import { buildOriginationUrl } from '../commercial/originationUrl';
 import {
   Zap,
@@ -53,7 +54,7 @@ const ESCALATION_LABELS: Record<number, string> = {
   1: 'Year 1 (1.00×)',
   2: 'Year 2 (1.10×)',
   3: 'Year 3 (1.20×)',
-  4: 'Year 4+ (1.30×)',
+  4: 'Year 4 (1.30×)',
 };
 
 export interface VesselArchetypeCalculatorProps {
@@ -151,14 +152,16 @@ export function VesselArchetypeCalculator({ onComparePathways }: VesselArchetype
 
   // 1-Click trade builder
   const handleTradeBuilder = () => {
-    const volumeMwh = Math.max(1000, Math.round(calculationResult.bioLngRequiredNeg100Mwh || defaultVolumeMwh()));
+    const volumeMwh = handoffVolumeMwh(calculationResult.bioLngRequiredNeg100Mwh);
     const url = buildDealUrl({
       marketId: 'FUELEU',
       originCountry: FUELEU_BIO_LNG_DEFAULT_ORIGIN.originCountry,
       feedstock: FUELEU_BIO_LNG_DEFAULT_ORIGIN.feedstock,
-      ci: bioLngCi,
+      // The volume is sized at the default bio-LNG CI (-100 basis), so that same CI is passed.
+      ci: FUELEU_BIO_LNG_DEFAULT_ORIGIN.ci,
       ciIsEstimated: true,
       volume: volumeMwh,
+      volumeIsEstimated: true,
       counterparty: `${activeArchetype.name} Offtake`,
       legalEntityName: `${activeArchetype.name} Offtake`,
       complianceYear: targetYear,
@@ -168,7 +171,7 @@ export function VesselArchetypeCalculator({ onComparePathways }: VesselArchetype
 
   // "Find a plant": sends this vessel's bio-LNG need into Origination instead of assuming NL/manure.
   const handleFindPlant = () => {
-    const volumeMwh = Math.max(1000, Math.round(calculationResult.bioLngRequiredNeg100Mwh || defaultVolumeMwh()));
+    const volumeMwh = handoffVolumeMwh(calculationResult.bioLngRequiredNeg100Mwh);
     navigate(buildOriginationUrl({ market: 'FUELEU', mwh: volumeMwh, buyer: `${activeArchetype.name} Offtake` }));
   };
 

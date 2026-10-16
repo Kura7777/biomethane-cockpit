@@ -17,25 +17,34 @@ export const ETS1_TRADE_MARKET_ID = 'EU_ETS1';
 export function buildEts1SiteTradeBuilderUrl(site: Ets1Site): string {
   const gasTco2 = site.fit !== 'LOW' ? site.verifiedLatestTco2 * ets1GasShare(site.sector) : 0;
   const volume = gasTco2 > 0 ? Math.round(biomethaneMWhToAbate(gasTco2) / HHV_TO_LHV_FACTOR) : undefined;
+  // The ETS1 site is the BUYER. Its country is a destination, not where the biomethane comes from,
+  // so originCountry is deliberately NOT passed (plant origin is unknown); the counterparty is carried.
+  const counterparty = (site.parentCompany || site.operator || site.name || '').trim() || undefined;
   return buildDealUrl({
     marketId: ETS1_TRADE_MARKET_ID,
     coc: 'MASS_BALANCE',
-    originCountry: site.country,
+    counterparty,
     volume,
     volumeIsEstimated: volume !== undefined ? true : undefined,
   });
 }
 
 /**
- * "Corporate order" for one ETS2 row: hands the company name and, when the desk already has a
- * sized gas volume for it (TWh, from the exposure calculation), the MWh equivalent. Never invents
- * a volume — a company with no sized gas use gets a bare client name.
+ * "Corporate order" for one ETS2 row. A volume is handed over ONLY for an exposed end user with its
+ * own disclosed gas volume (TWh -> MWh). A regulated supplier's gas book is not a buyer's order
+ * size (its whole book is its customers' gas), so it gets a bare client name and the trader
+ * enters the volume.
  */
-export function buildEts2CorporateOrderUrl(companyName: string, volumeTWh: number | null): string {
+export function buildEts2CorporateOrderUrl(
+  companyName: string,
+  volumeTWh: number | null,
+  own?: { role: 'REGULATED_SUPPLIER' | 'EXPOSED_END_USER'; volumeMethod: 'DISCLOSED' | 'SHARE_OF_NATIONAL' | null }
+): string {
   const MWH_PER_TWH = 1_000_000;
   const params = new URLSearchParams();
   if (companyName) params.set('client', companyName);
-  if (volumeTWh !== null && Number.isFinite(volumeTWh) && volumeTWh > 0) {
+  const ownVolume = own ? own.role === 'EXPOSED_END_USER' && own.volumeMethod === 'DISCLOSED' : false;
+  if (ownVolume && volumeTWh !== null && Number.isFinite(volumeTWh) && volumeTWh > 0) {
     params.set('mwh', String(Math.round(volumeTWh * MWH_PER_TWH)));
   }
   const qs = params.toString();

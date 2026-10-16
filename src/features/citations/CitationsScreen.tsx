@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { LEGAL_CITATIONS, getCitationById, searchCitations } from '../../domain/citations/registry';
+import { LEGAL_CITATIONS, getCitationById, searchCitations, latestCitationDateLabel } from '../../domain/citations/registry';
 import { LegalCitation } from '../../domain/citations/types';
 import { showToast } from '../../app/DeskToastContainer';
 import { PageShell } from '../../shared/ui/PageShell';
@@ -8,6 +8,7 @@ import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import './citations.css';
 
 export function CitationsScreen() {
+  const latestLabel = useMemo(() => latestCitationDateLabel(), []);
   const [selectedCitationId, setSelectedCitationId] = useState<string>('RED_III_DIR_2023_2413');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSection, setActiveSection] = useState('summary');
@@ -43,7 +44,7 @@ export function CitationsScreen() {
     {/* Document Header */}
     <div className="cit-doc-head" style={{ padding: '20px 24px', borderBottom: '2px solid var(--color-divider)' }}>
       <div className="eyebrow">
-        {activeDoc.jurisdictionName} · {activeDoc.status.replace(/_/g, ' ').toLowerCase()} · Consolidated to August 2026
+        {activeDoc.jurisdictionName} · {activeDoc.needsVerification ? 'status needs verification' : activeDoc.status.replace(/_/g, ' ').toLowerCase()}{latestLabel ? ` · Registry dated to ${latestLabel}` : ''}
       </div>
       <h3 className="font-heading cit-doc-title" style={{ fontSize: '30px', margin: '8px 0 6px', fontWeight: 800 }}>
         {activeDoc.shortTitle}

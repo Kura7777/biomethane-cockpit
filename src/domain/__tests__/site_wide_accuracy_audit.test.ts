@@ -845,7 +845,7 @@ describe('SITE-WIDE ACCURACY & MATHEMATICAL GROUND-TRUTH AUDIT', () => {
       const gieMap = getDataSourceById('gie_eba_biomethane_map');
       expect(gieMap).toBeDefined();
       expect(gieMap!.sourceDocumentOrUrl).toContain('GIE_EBA_BIO_2026_A0_FULL_115.pdf');
-      expect(gieMap!.coverageCount).toContain('1,975');
+      expect(gieMap!.coverageCount).toContain('1,974');
 
       const redIII = getDataSourceById('red_iii_annex_v_ix');
       expect(redIII).toBeDefined();

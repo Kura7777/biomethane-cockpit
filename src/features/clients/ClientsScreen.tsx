@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { FUELEU_STATUTORY_PENALTY_PER_TONNE } from '../../domain/regulatory/constants';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../../store/context';
 import { PageShell, PageHeader, Card, KpiRow, KpiTile, MobileCardList } from '../../shared/ui';
@@ -190,7 +191,7 @@ export function ClientsScreen() {
   const [params, setParams] = useSearchParams();
   const eua = selectMarkPrice(state.marks.marks['EU_ETS1'], 'mid');
   const ets2Price = selectMarkPrice(state.marks.marks['EU_ETS2'], 'mid');
-  const poolMid = selectMarkPrice(state.marks.marks['FUELEU'], 'mid');
+  const poolOffer = selectMarkPrice(state.marks.marks['FUELEU'], 'offer');
   const year = new Date().getFullYear();
 
   const [links, setLinks] = useState<CompanyLink[]>(readLinks);
@@ -351,7 +352,7 @@ export function ClientsScreen() {
           related={related}
           eua={eua}
           ets2Price={ets2Price}
-          poolMid={poolMid}
+          poolOffer={poolOffer}
           year={year}
           marks={state.marks}
           ets2Countries={ets2Countries}
@@ -425,11 +426,11 @@ export function ClientsScreen() {
             <div className="cl-mkpi"><span>Companies shown</span><strong className="num">{filtered.length.toLocaleString('en-GB')}</strong><em>match · {listed.toLocaleString('en-GB')} listed</em></div>
             <div className="cl-mkpi" title={COLUMN_HELP.bio}><span>Biomethane potential</span><strong className="num">{formatEur(bioShown)}<small>/yr</small></strong><em>{twhText} · a ceiling</em></div>
             <div className="cl-mkpi"><span>Cost now</span><strong className="num">{formatEur(costShown)}<small>/yr</small></strong><em>net of free allocation</em></div>
-            <div className="cl-mkpi"><span>EUA · pool</span><strong className="num">€{price(eua)}</strong><em>pool €{price(poolMid)}/t</em></div>
+            <div className="cl-mkpi"><span>EUA · pool</span><strong className="num">€{price(eua)}</strong><em>pool €{price(poolOffer)}/t</em></div>
             <details className="cl-mkpi-more">
               <summary>More figures</summary>
               <div>Value stack available: {stackCount.toLocaleString('en-GB')} (2+ regimes pay on the same MWh)</div>
-              <div>Prices: EUA €{price(eua)} · ETS2 €{price(ets2Price)} · FuelEU pool €{price(poolMid)}/t, desk marks</div>
+              <div>Prices: EUA €{price(eua)} · ETS2 €{price(ets2Price)} · FuelEU pool €{price(poolOffer)}/t, desk marks</div>
               <div>Cost now = FuelEU + ETS maritime + ETS1 ({ETS1_BASIS_LABEL})</div>
             </details>
           </div>
@@ -439,7 +440,7 @@ export function ClientsScreen() {
           <KpiTile label="Value stack available" value={stackCount.toLocaleString('en-GB')} sub="2+ regimes pay on the same MWh" />
           <KpiTile label="Biomethane potential" value={formatEur(bioShown)} unit="/yr" sub={`≈ ${twhText} of biomethane: a ceiling, not a deal size`} />
           <KpiTile label="Cost now" value={formatEur(costShown)} unit="/yr" sub={`FuelEU + ETS maritime + ETS1 (${ETS1_BASIS_LABEL})`} />
-          <KpiTile label="Prices used" value={eua === null ? '—' : `€${price(eua)}`} unit="/t EUA" sub={`ETS2 €${price(ets2Price)} · FuelEU pool €${price(poolMid)}/t · desk marks`} />
+          <KpiTile label="Prices used" value={eua === null ? '—' : `€${price(eua)}`} unit="/t EUA" sub={`ETS2 €${price(ets2Price)} · FuelEU pool €${price(poolOffer)}/t · desk marks`} />
         </KpiRow>
         )}
       </div>
@@ -635,7 +636,7 @@ function CompanyPage(props: {
   related: CompanyProfile[];
   eua: number | null;
   ets2Price: number | null;
-  poolMid: number | null;
+  poolOffer: number | null;
   year: number;
   marks: Parameters<typeof computeOpportunities>[1];
   ets2Countries: Parameters<typeof computeOpportunities>[2];
@@ -648,7 +649,7 @@ function CompanyPage(props: {
   onSelect: (id: string) => void;
   onAction: (o: Opportunity) => void;
 }) {
-  const { row: { profile: p, exposure: x, bioValueEur }, eua, poolMid } = props;
+  const { row: { profile: p, exposure: x, bioValueEur }, eua, poolOffer } = props;
   const isMobile = useIsMobile();
   const opportunities = useMemo(
     () => computeOpportunities(p, props.marks, props.ets2Countries, props.year),
@@ -683,7 +684,7 @@ function CompanyPage(props: {
       key: 'FUELEU',
       cost: has('FUELEU') ? fuelEuCost : '',
       basis: has('FUELEU')
-        ? `${vessels} ships (${lngShips} LNG-capable); 2026 deficit ${Math.round(deficit).toLocaleString('en-GB')} tCO₂e, bought at the desk pool mark of €${price(poolMid)}/t. ${x.fuelEuState === 'NO_MARK' ? 'No pool mark is set, so the deficit is not priced. ' : ''}Penalty if nothing is done: ${formatEur(x.fuelEuPenaltyEur)}/yr (statutory, €2,400/t VLSFO-eq.). EU MRV ${MRV_YEAR} as proxy.`
+        ? `${vessels} ships (${lngShips} LNG-capable); 2026 deficit ${Math.round(deficit).toLocaleString('en-GB')} tCO₂e, bought at the desk pool mark of €${price(poolOffer)}/t. ${x.fuelEuState === 'NO_MARK' ? 'No pool mark is set, so the deficit is not priced. ' : ''}Penalty if nothing is done: ${formatEur(x.fuelEuPenaltyEur)}/yr (statutory, €${FUELEU_STATUTORY_PENALTY_PER_TONNE.toLocaleString('en-GB')}/t VLSFO-eq.). EU MRV ${MRV_YEAR} as proxy.`
         : '',
     },
     { key: 'ETS_MARITIME', cost: has('ETS_MARITIME') ? `${formatEur(x.etsMaritimeEur)}/yr` : '', basis: has('ETS_MARITIME') ? `${Math.round(maritimeT).toLocaleString('en-GB')} tCO₂e in scope (100% intra-EU, 50% in/out of the EU), 100% phase-in from 2026, at €${price(eua)}/t. EU MRV ${MRV_YEAR}.` : '' },

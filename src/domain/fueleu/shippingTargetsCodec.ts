@@ -1,3 +1,4 @@
+import { physicalDealEconomics } from './calculator';
 import type { ShippingCounterparty, FuelEuDatasetSource, GroupEntityType, FuelCostBearer, FleetCapability } from './types';
 
 /**
@@ -91,7 +92,8 @@ export interface PitchInputs {
   balance2026: number;
   penalty2026Y1: number;
   bioNeg100Mwh: number;
-  savePhys: number;
+  /** Ignored: physical savings are computed live from the desk assumptions (see physicalDealEconomics). */
+  savePhys?: number;
   surplus: boolean;
 }
 
@@ -115,8 +117,8 @@ export function buildOutreachPitch(p: PitchInputs): string {
   return (
     head +
     `${(Math.abs(p.balance2026) / 1000).toFixed(1)} kt deficit and an indicative €${(p.penalty2026Y1 / 1e6).toFixed(2)}M Annex IV penalty exposure. ` +
-    `Closing it would require an estimated ${(p.bioNeg100Mwh / 1000).toFixed(1)} GWh of -100 CI Bio-LNG, physical bunkering alone offers up to ` +
-    `€${(p.savePhys / 1e6).toFixed(2)}M in net compliance savings; an Article 21 pool allocation is priced separately against the live FuelEU pool mark.`
+    `Closing it would require an estimated ${(p.bioNeg100Mwh / 1000).toFixed(1)} GWh of -100 CI Bio-LNG, physical bunkering alone offers ` +
+    `indicative net savings that depend on the desk's current bio-LNG premium (priced live in the term sheet); an Article 21 pool allocation is priced separately against the live FuelEU pool mark.`
   );
 }
 
@@ -132,8 +134,7 @@ export function decodeShippingTargets(pack: ShippingTargetsPack): ShippingCounte
     const bal26 = r[COL.bal2026] as number;
     const ghgie = r[COL.ghgie] as number;
     const bioMwh = r[COL.bioNeg100Mwh] as number;
-    const savePhys = r[COL.savePhys] as number;
-    return {
+    const row: ShippingCounterparty = {
       rank: i + 1,
       parent_name: name,
       segment: pack.segments[r[COL.segment] as number],
@@ -152,8 +153,9 @@ export function decodeShippingTargets(pack: ShippingTargetsPack): ShippingCounte
       bio_lng_required_neg100_t: r[COL.bioNeg100T] as number,
       bio_lng_required_neg100_mwh: bioMwh,
       bio_lng_required_zero_t: r[COL.bioZeroT] as number,
-      client_savings_physical_eur: savePhys,
-      desk_margin_physical_eur: r[COL.marginPhys] as number,
+      // Live getters (defined below): savings and desk margin follow the Pricing-desk assumptions.
+      client_savings_physical_eur: 0,
+      desk_margin_physical_eur: 0,
       outreachPitch: buildOutreachPitch({
         name,
         reportingPeriod: source.reportingPeriod,
@@ -162,7 +164,6 @@ export function decodeShippingTargets(pack: ShippingTargetsPack): ShippingCounte
         balance2026: bal26,
         penalty2026Y1: pen26,
         bioNeg100Mwh: bioMwh,
-        savePhys,
         surplus: tier === 4,
       }),
       fleetCapability: pack.fleetCapabilities[r[COL.fleetCap] as number],
@@ -189,5 +190,14 @@ export function decodeShippingTargets(pack: ShippingTargetsPack): ShippingCounte
         : [],
       fuelCostBearer: pack.bearers[r[COL.bearer] as number],
     };
+    Object.defineProperty(row, 'client_savings_physical_eur', {
+      enumerable: true,
+      get: () => Math.round(physicalDealEconomics(bioMwh, pen26).savingsEur),
+    });
+    Object.defineProperty(row, 'desk_margin_physical_eur', {
+      enumerable: true,
+      get: () => Math.round(physicalDealEconomics(bioMwh, pen26).deskMarginEur),
+    });
+    return row;
   });
 }

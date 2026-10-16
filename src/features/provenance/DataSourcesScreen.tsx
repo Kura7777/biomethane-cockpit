@@ -8,6 +8,8 @@ type CategoryFilter = 'All' | 'Plants' | 'Pricing' | 'Registries' | 'Logistics';
 
 function formatCadence(freq: string): string {
   switch (freq) {
+    case 'STATIC_SNAPSHOT':
+      return 'Static snapshot';
     case 'REAL_TIME_API':
       return 'Real-time API';
     case 'DAILY':
@@ -73,7 +75,7 @@ export function DataSourcesScreen() {
         <div>
           <h3 className="ptitle m-page-title font-heading font-extrabold text-[20px] m-0">Data sources &amp; provenance</h3>
           <div className="subttl text-[12px] mt-1">
-            Every figure on the desk resolves to one of these sources, with its authority, cadence and the fields it does not cover
+            Main sources behind the figures on the desk, with authority, update cadence (the app uses static snapshots unless stated) and the fields each does not cover
           </div>
         </div>
 

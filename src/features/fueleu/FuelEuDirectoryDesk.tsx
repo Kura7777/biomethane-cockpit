@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { buildCsv, downloadCsvFile } from '../../domain/companies/csv';
 import { Search, ArrowUp, ArrowDown, ArrowUpDown, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FUEL_EU_SHIPPING_GROUPS, FuelEuShippingGroup } from '../../domain/fueleu/groups';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../../domain/fueleu/shippingTargetsData';
@@ -280,26 +281,17 @@ export function FuelEuDirectoryDesk({
 
   const handleExport = () => {
     const headers = ['Name', 'Meta', 'Vessels', 'In-scope CO2 (t)', '2026 balance (t)', 'Penalty (EUR)', 'Pool cost (EUR)', 'Saving (EUR)'];
-    const escapeVal = (v: string) => `"${v.replace(/"/g, '""')}"`;
     const rows = sortedRows.map(r => [
-      escapeVal(r.name),
-      escapeVal(r.meta + (r.metaCount ? ` ${r.metaCount}` : '')),
+      r.name,
+      r.meta + (r.metaCount ? ` ${r.metaCount}` : ''),
       r.vessels,
       Math.round(r.co2Tco2e),
       Math.round(r.balanceTco2e),
       Math.round(r.penaltyEur),
-      r.poolCostEur !== null ? Math.round(r.poolCostEur) : '',
-      r.savingEur !== null ? Math.round(r.savingEur) : '',
+      r.poolCostEur !== null ? Math.round(r.poolCostEur) : null,
+      r.savingEur !== null ? Math.round(r.savingEur) : null,
     ]);
-    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `fueleu_directory_${viewMode.toLowerCase()}_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsvFile(`fueleu_directory_${viewMode.toLowerCase()}_${new Date().toISOString().split('T')[0]}.csv`, buildCsv(headers, rows));
     showToast(`Exported ${sortedRows.length} ${viewMode.toLowerCase()} to CSV`, 'SUCCESS');
   };
 

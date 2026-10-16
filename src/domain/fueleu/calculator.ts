@@ -855,3 +855,20 @@ export function projectStaticFleetForCounterparties(
     penaltyEur: perRow.reduce((sum, pts) => sum + (pts[i]?.penaltyEur ?? 0), 0),
   }));
 }
+
+
+/**
+ * Physical bio-LNG economics for a sized need, from the CURRENT desk assumptions
+ * (fueleu.bioLngPremiumEurPerMwh and fueleu.physicalDeskMarginEurPerMwh, set on #/pricing).
+ * Nothing here is baked into the dataset: change the assumption and every screen follows.
+ */
+export function physicalDealEconomics(
+  bioLngRequiredNeg100Mwh: number,
+  statutoryPenaltyY1Eur: number
+): { savingsEur: number; deskMarginEur: number } {
+  const premiumCost = bioLngRequiredNeg100Mwh * getAssumption('fueleu.bioLngPremiumEurPerMwh');
+  return {
+    savingsEur: Math.max(0, statutoryPenaltyY1Eur - premiumCost),
+    deskMarginEur: bioLngRequiredNeg100Mwh * getAssumption('fueleu.physicalDeskMarginEurPerMwh'),
+  };
+}

@@ -21,3 +21,22 @@ export const CSV_BOM = '﻿';
 export function buildCsv(header: string[], rows: CsvValue[][]): string {
   return CSV_BOM + [header, ...rows].map(r => r.map(csvCell).join(',')).join('\n');
 }
+
+/**
+ * Saves CSV text as a file via a Blob (never a data: URI: encodeURI leaves '#' unescaped and
+ * truncates the file at the first one). A BOM is added when missing. No-op without a DOM.
+ */
+export function downloadCsvFile(filename: string, csvText: string): void {
+  if (typeof document === 'undefined' || typeof URL === 'undefined') return;
+  const text = csvText.startsWith(CSV_BOM) ? csvText : CSV_BOM + csvText;
+  const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  // Revoke after the click has been handled, or some browsers cancel the download.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}

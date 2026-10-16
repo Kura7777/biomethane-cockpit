@@ -56,7 +56,8 @@ export function FuelEUShippingScreen() {
 
   const selectedCounterparty = useMemo<ShippingCounterparty | null>(() => {
     if (!companyParam) return null;
-    const rank = parseInt(companyParam, 10);
+    // Digits only: "3M Ltd" must not select rank 3.
+    const rank = /^\d+$/.test(companyParam) ? parseInt(companyParam, 10) : NaN;
     if (!isNaN(rank)) {
       const byRank = FUEL_EU_SHIPPING_COUNTERPARTIES.find(c => c.rank === rank);
       if (byRank) return byRank;
