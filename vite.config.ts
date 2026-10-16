@@ -6,7 +6,7 @@ import { visualizer } from 'rollup-plugin-visualizer';
 
 import { execSync } from 'child_process';
 
-let commitHash = 'dev';
+let commitHash: string;
 try {
   commitHash = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ||
     execSync('git rev-parse --short HEAD').toString().trim();
