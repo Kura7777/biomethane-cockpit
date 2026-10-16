@@ -1,10 +1,12 @@
-import React, { createContext, useContext, useReducer, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef, useState, ReactNode } from 'react';
+import { showToast } from '../app/DeskToastContainer';
 import { AppState, AppAction, CURRENT_SCHEMA_VERSION, CostFieldSource, createDefaultState } from './state';
 import { migrateState } from './migrations';
 import { appReducer } from './reducer';
 import {
   STORAGE_KEY,
   getInitialState,
+  takePendingLoadWarnings,
   exportState,
   importState,
   buildDeskBackupFile,
@@ -71,6 +73,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setPriorCloseMarks(targetMarks);
   };
 
+  // One-time warnings raised while loading saved state (e.g. data from a newer app version).
+  useEffect(() => {
+    for (const w of takePendingLoadWarnings()) showToast(w, 'warning', { durationMs: 12000 });
+  }, []);
+
+  // A failed autosave (quota exceeded, blocked storage) is surfaced once, not on every keystroke.
+  const saveFailureShown = useRef(false);
+
   // Auto-save to localStorage on change with visual status tracking
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- visual saving status tracking on state change
@@ -79,8 +89,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         setLastSavedAt(new Date());
+        saveFailureShown.current = false;
       } catch (e) {
         console.warn('Failed to save state to localStorage', e);
+        if (!saveFailureShown.current) {
+          saveFailureShown.current = true;
+          showToast(
+            'Desk changes are NOT being saved (browser storage is full or blocked). Export a desk backup now.',
+            'warning',
+            { durationMs: 12000 }
+          );
+        }
       } finally {
         setIsSaving(false);
       }

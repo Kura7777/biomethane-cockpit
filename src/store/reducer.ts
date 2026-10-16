@@ -340,26 +340,45 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         }
       }
 
-      // Deduplication: when a winning benchmark quote is committed for a market,
-      // it replaces obsolete previous pastes and synthetic placeholder rows for that market.
-      const winningMarketIds = new Set(
-        candidates
-          .filter(({ mId, rowId }) => nextRefIds[mId] === rowId)
-          .map(({ mId }) => mId)
-      );
-
+      // Deduplication: a pasted row replaces an earlier row only when it is the same market, the
+      // same tenor/vintage and the same feedstock, the earlier row came from an earlier paste, and
+      // nobody edited it by hand. Seed placeholders are replaced by market + tenor, if unedited.
+      // Anything else (other tenors, other feedstocks, hand-edited rows) is never deleted.
+      const canon = (v: string) => (v || '').trim().toLowerCase().replace(/[\s_-]+/g, ' ');
+      const incoming = action.rows
+        .map(r => ({
+          mId: resolveMarketForQuote(r),
+          vintage: canon(r.vintage),
+          feedstock: canon(r.feedstock),
+          observedAt: r.observedAt ?? action.runMeta.receivedOn,
+        }))
+        .filter(x => x.mId);
       const filteredExisting = state.pricingBook.filter(existing => {
+        if (existing.editedAt) return true;
+        const isPaste = existing.id.startsWith('paste_');
+        const isSeed = NON_BROKER_SEED_ROW_IDS.includes(existing.id) && existing.provenanceTier === 'MODELLED_SIMULATED';
+        if (!isPaste && !isSeed) return true;
         const existingMid = resolveMarketForQuote(existing);
-        if (existingMid && winningMarketIds.has(existingMid)) {
-          // Replace previous pasted benchmark rows for this market
-          if (existing.id.startsWith('paste_')) return false;
-          // Replace legacy synthetic placeholder estimates for this market
-          if (existing.provenanceTier === 'MODELLED_SIMULATED' && NON_BROKER_SEED_ROW_IDS.includes(existing.id)) return false;
-        }
-        return true;
+        if (!existingMid) return true;
+        const ev = canon(existing.vintage);
+        const ef = canon(existing.feedstock);
+        // An older run never displaces a newer row (ISO dates compare lexicographically).
+        const superseded = incoming.some(
+          x =>
+            x.mId === existingMid &&
+            x.vintage === ev &&
+            (isSeed || x.feedstock === ef) &&
+            !(existing.observedAt && x.observedAt && existing.observedAt > x.observedAt)
+        );
+        return !superseded;
       });
 
       const nextBook = [...filteredExisting, ...action.rows];
+      // Never leave a reference star pointing at a row that no longer exists.
+      const liveIds = new Set(nextBook.map(r => r.id));
+      for (const [mId, rowId] of Object.entries(nextRefIds)) {
+        if (rowId && !liveIds.has(rowId)) delete nextRefIds[mId];
+      }
 
       return {
         ...state,

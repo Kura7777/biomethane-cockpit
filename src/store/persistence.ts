@@ -1,4 +1,4 @@
-import { AppState, createDefaultState } from './state';
+import { AppState, CURRENT_SCHEMA_VERSION, createDefaultState } from './state';
 import { migrateState } from './migrations';
 
 export const STORAGE_KEY = 'biomethane-desk-state-v10';
@@ -35,6 +35,44 @@ export function quarantineUnreadableState(key: string, raw: string): void {
   }
 }
 
+// A payload written by a NEWER build of the app is copied here before anything can overwrite it.
+export const FUTURE_VERSION_BACKUP_PREFIX = 'biomethane-desk-state-newer-version:';
+
+// Warnings raised while loading (before any UI exists). The provider shows them once on mount.
+const pendingLoadWarnings: string[] = [];
+
+export function takePendingLoadWarnings(): string[] {
+  return pendingLoadWarnings.splice(0, pendingLoadWarnings.length);
+}
+
+function schemaVersionOf(parsed: unknown): number | null {
+  const v = (parsed as { schemaVersion?: unknown } | null)?.schemaVersion;
+  return typeof v === 'number' && Number.isFinite(v) ? v : null;
+}
+
+/**
+ * If the stored state was written by a newer app version, keep the raw blob under a backup key
+ * (migrating would stamp it with this build's version and the next autosave would overwrite it)
+ * and queue a one-time warning. Returns true when the blob is newer than this build understands.
+ */
+export function guardFutureVersion(key: string, raw: string, parsed: unknown): boolean {
+  const v = schemaVersionOf(parsed);
+  if (v === null || v <= CURRENT_SCHEMA_VERSION) return false;
+  let backedUp = true;
+  try {
+    localStorage.setItem(`${FUTURE_VERSION_BACKUP_PREFIX}${key}`, raw);
+  } catch {
+    backedUp = false;
+  }
+  pendingLoadWarnings.push(
+    `Saved desk data was written by a newer version of the app (schema ${v}, this build understands ${CURRENT_SCHEMA_VERSION}). ` +
+    (backedUp
+      ? `A copy is kept under "${FUTURE_VERSION_BACKUP_PREFIX}${key}"; fields this version does not know may be dropped.`
+      : 'It could NOT be backed up; export a desk backup before editing anything.')
+  );
+  return true;
+}
+
 export function getInitialState(): AppState {
   for (const key of KNOWN_STORAGE_KEYS) {
     let stored: string | null;
@@ -49,7 +87,9 @@ export function getInitialState(): AppState {
     if (!stored) continue;
 
     try {
-      const migrated = migrateState(JSON.parse(stored));
+      const parsed = JSON.parse(stored);
+      guardFutureVersion(key, stored, parsed);
+      const migrated = migrateState(parsed);
       if (key !== STORAGE_KEY) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
       }
