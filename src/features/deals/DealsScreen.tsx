@@ -13,6 +13,9 @@ import { NetbackResult } from '../../domain/netback/types';
 import { AssessmentStatus, TradeAssessment } from '../../domain/trade/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import { formatEur } from '../../domain/companies/money';
+import { buildCsv } from '../../domain/companies/csv';
+import { downloadTextFile } from '../../utils/download';
+import { isCommittedDeal, isDeleteConfirmed, DELETE_CONFIRM_WORD, canTransition } from '../../store/dealGuards';
 
 const STATUS_LABEL: Record<AssessmentStatus, string> = {
   INDICATIVE: 'Indicative',
@@ -68,6 +71,7 @@ export function DealsScreen() {
   const isMobile = useIsMobile();
   const [statusFilter, setStatusFilter] = useState<AssessmentStatus | 'ALL'>('ALL');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleteTyped, setDeleteTyped] = useState('');
   const [repricedIds, setRepriced] = useState<Record<string, NetbackResult | null>>({});
   const [noteDraftId, setNoteDraftId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState('');
@@ -83,8 +87,8 @@ export function DealsScreen() {
     [deals, statusFilter]
   );
 
-  const totalMwh = visible.reduce((sum, d) => sum + (d.consignment.volumeMWh ?? 0), 0);
-  // Dead deals stay listed but don't count towards the book's P&L.
+  // Dead deals stay listed but count towards neither the volume nor the P&L.
+  const totalMwh = visible.filter(d => statusOf(d) !== 'DEAD').reduce((sum, d) => sum + (d.consignment.volumeMWh ?? 0), 0);
   const totalPnl = visible.filter(d => statusOf(d) !== 'DEAD').reduce((sum, d) => sum + (d.netback.deskPnL ?? 0), 0);
 
   const counts = useMemo(() => {
@@ -115,9 +119,34 @@ export function DealsScreen() {
     }));
   };
 
-  const handleDelete = (id: string) => {
-    dispatch({ type: 'DELETE_ASSESSMENT', id });
+  const handleDelete = (a: TradeAssessment) => {
+    const committed = isCommittedDeal(a);
+    if (committed && !isDeleteConfirmed(deleteTyped)) return;
+    dispatch({ type: 'DELETE_ASSESSMENT', id: a.id, confirmed: committed });
     setConfirmDeleteId(null);
+    setDeleteTyped('');
+  };
+
+  const handleExportJson = () => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      note: "Prices as saved on each deal, not today's market.",
+      deals: deals.map(d => ({ ...d, complianceSignoff: state.dealSignoffs?.[d.id] ?? null })),
+    };
+    downloadTextFile(`deal-blotter-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(payload, null, 2), 'application/json');
+  };
+
+  const handleExportCsv = () => {
+    const header = ['Deal ID', 'Saved', 'Status', 'Market', 'Origin', 'Volume MWh', 'Netback EUR/MWh', 'Producer payable EUR/MWh', 'Desk margin EUR/MWh', 'Deal P&L EUR', 'Compliance reviewed by', 'Compliance reviewed at', 'Notes'];
+    const rows = deals.map(d => {
+      const so = state.dealSignoffs?.[d.id];
+      return [
+        d.id, d.createdAt, STATUS_LABEL[statusOf(d)], d.targetMarketName, originLabel(d),
+        d.consignment.volumeMWh, d.netback.netNetback, d.netback.producerPayable, d.netback.deskMargin, d.netback.deskPnL,
+        so?.by ?? '', so?.at ?? '', d.userNotes,
+      ];
+    });
+    downloadTextFile(`deal-blotter-${new Date().toISOString().slice(0, 10)}.csv`, buildCsv(header, rows), 'text/csv');
   };
 
   const handleStatusSelect = (a: TradeAssessment, status: AssessmentStatus) => {
@@ -166,7 +195,7 @@ export function DealsScreen() {
     });
   };
 
-  const StatusControl = ({ a }: { a: TradeAssessment }) => {
+  const statusControl = (a: TradeAssessment) => {
     const pending = pendingStatus?.id === a.id ? pendingStatus : null;
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '150px' }}>
@@ -178,9 +207,14 @@ export function DealsScreen() {
           onChange={e => handleStatusSelect(a, e.target.value as AssessmentStatus)}
         >
           {STATUS_ORDER.map(s => (
-            <option key={s} value={s}>{STATUS_LABEL[s]}</option>
+            <option key={s} value={s} disabled={!canTransition(statusOf(a), s)}>{STATUS_LABEL[s]}</option>
           ))}
         </select>
+        {state.dealSignoffs?.[a.id] && (
+          <span className="chip chip-pos" style={{ fontSize: '10.5px' }} data-testid={`signoff-${a.id}`}>
+            Compliance reviewed: {state.dealSignoffs[a.id].by} ({formatDate(state.dealSignoffs[a.id].at)})
+          </span>
+        )}
         {pending ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <input
@@ -211,7 +245,7 @@ export function DealsScreen() {
     );
   };
 
-  const NotesCell = ({ a }: { a: TradeAssessment }) => {
+  const notesCell = (a: TradeAssessment) => {
     if (noteDraftId === a.id) {
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '160px' }}>
@@ -242,7 +276,7 @@ export function DealsScreen() {
     );
   };
 
-  const RowActions = ({ a }: { a: TradeAssessment }) => {
+  const rowActions = (a: TradeAssessment) => {
     const repriced = repricedIds[a.id];
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
@@ -255,16 +289,37 @@ export function DealsScreen() {
           </button>
           {confirmDeleteId === a.id ? (
             <>
-              <span className="mut" style={{ fontSize: '11px' }}>Delete this deal?</span>
-              <button type="button" className="btn btn-secondary" style={{ fontSize: '11px', padding: '2px 8px' }} onClick={() => handleDelete(a.id)} data-testid={`confirm-delete-${a.id}`}>
+              <span className="mut" style={{ fontSize: '11px' }}>
+                {isCommittedDeal(a) ? `This deal is ${STATUS_LABEL[statusOf(a)].toLowerCase()}. Type ${DELETE_CONFIRM_WORD} to delete:` : 'Delete this deal?'}
+              </span>
+              {isCommittedDeal(a) && (
+                <input
+                  type="text"
+                  className="input"
+                  style={{ fontSize: '11px', padding: '2px 6px', width: '80px' }}
+                  value={deleteTyped}
+                  onChange={e => setDeleteTyped(e.target.value)}
+                  autoFocus
+                  aria-label={`Type ${DELETE_CONFIRM_WORD} to confirm`}
+                  data-testid={`delete-typed-${a.id}`}
+                />
+              )}
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ fontSize: '11px', padding: '2px 8px' }}
+                disabled={isCommittedDeal(a) && !isDeleteConfirmed(deleteTyped)}
+                onClick={() => handleDelete(a)}
+                data-testid={`confirm-delete-${a.id}`}
+              >
                 Confirm
               </button>
-              <button type="button" className="btn btn-ghost" style={{ fontSize: '11px', padding: '2px 8px' }} onClick={() => setConfirmDeleteId(null)}>
+              <button type="button" className="btn btn-ghost" style={{ fontSize: '11px', padding: '2px 8px' }} onClick={() => { setConfirmDeleteId(null); setDeleteTyped(''); }}>
                 Cancel
               </button>
             </>
           ) : (
-            <button type="button" className="btn btn-ghost" style={{ fontSize: '11px', padding: '2px 8px', color: 'var(--color-status-neg-text)' }} onClick={() => setConfirmDeleteId(a.id)} data-testid={`delete-deal-${a.id}`}>
+            <button type="button" className="btn btn-ghost" style={{ fontSize: '11px', padding: '2px 8px', color: 'var(--color-status-neg-text)' }} onClick={() => { setConfirmDeleteId(a.id); setDeleteTyped(''); }} data-testid={`delete-deal-${a.id}`}>
               Delete
             </button>
           )}
@@ -300,6 +355,15 @@ export function DealsScreen() {
           </div>
         </div>
 
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <button type="button" className="btn btn-secondary" style={{ fontSize: '12px', padding: '4px 10px' }} onClick={handleExportCsv} disabled={deals.length === 0} data-testid="export-blotter-csv">
+            Export blotter (CSV)
+          </button>
+          <button type="button" className="btn btn-secondary" style={{ fontSize: '12px', padding: '4px 10px' }} onClick={handleExportJson} disabled={deals.length === 0} data-testid="export-blotter-json">
+            Export blotter (JSON)
+          </button>
+        </div>
+
         <div className="deals-status-chips" style={{ marginLeft: 'auto', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
           <button
             type="button"
@@ -323,8 +387,8 @@ export function DealsScreen() {
 
       <div style={{ padding: '10px var(--ds-page-gutter, 18px)', display: 'flex', flexWrap: 'wrap', gap: '12px 20px', fontSize: '12px' }} className="mut">
         <span>Showing <span className="num font-semibold">{visible.length}</span> of {deals.length} deals</span>
-        <span>Total volume: <span className="num font-semibold">{totalMwh.toLocaleString()}</span> MWh</span>
-        <span>Total deal P&amp;L: <span className="num font-semibold">{formatEur(totalPnl)}</span></span>
+        <span>Total volume (excl. dead): <span className="num font-semibold">{totalMwh.toLocaleString()}</span> MWh</span>
+        <span>Total deal P&amp;L (excl. dead, mixed statuses): <span className="num font-semibold">{formatEur(totalPnl)}</span></span>
       </div>
 
       <div style={{ padding: '0 var(--ds-page-gutter, 18px) 18px' }}>
@@ -350,9 +414,9 @@ export function DealsScreen() {
                 { label: 'Netback', value: a.netback.netNetback != null ? `€${a.netback.netNetback.toFixed(2)}/MWh` : '—', mono: true },
                 { label: 'Desk margin', value: a.netback.deskMargin != null ? `€${a.netback.deskMargin.toFixed(2)}/MWh` : '—', mono: true },
                 { label: 'Mark', value: <SourceChip badge={mark.badge} suffix={mark.dateLabel} />, span: 2 },
-                { label: 'Actions', value: <RowActions a={a} />, span: 2 },
-                { label: 'Status', value: <StatusControl a={a} />, span: 2 },
-                { label: 'Notes', value: <NotesCell a={a} />, span: 2 },
+                { label: 'Actions', value: rowActions(a), span: 2 },
+                { label: 'Status', value: statusControl(a), span: 2 },
+                { label: 'Notes', value: notesCell(a), span: 2 },
               ];
             }}
           />
@@ -395,13 +459,13 @@ export function DealsScreen() {
                         <span className={`chip ${STATUS_CHIP_CLASS[statusOf(a)]}`} style={{ marginBottom: '4px', display: 'inline-block' }}>
                           {STATUS_LABEL[statusOf(a)]}
                         </span>
-                        <StatusControl a={a} />
+                        {statusControl(a)}
                       </td>
                       <td style={{ maxWidth: '200px' }}>
-                        <NotesCell a={a} />
+                        {notesCell(a)}
                       </td>
                       <td>
-                        <RowActions a={a} />
+                        {rowActions(a)}
                       </td>
                     </tr>
                   );

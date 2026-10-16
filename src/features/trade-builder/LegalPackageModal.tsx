@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TradeAssessment } from '../../domain/trade/types';
-import { useAuth } from '../../shared/auth/useAuth';
-import { apiClient } from '../../domain/api/client';
-import { deskSync } from '../../domain/sync/deskSync';
+import { useAppState } from '../../store/context';
+import { getDeskUserName, setDeskUserName } from '../../shared/identity/deskUser';
 import { showToast } from '../../app/DeskToastContainer';
 import { useLegalPackageData } from './legal/useLegalPackageData';
 import { LegalPackageHeader } from './legal/LegalPackageHeader';
@@ -26,9 +25,13 @@ interface LegalPackageModalProps {
 
 export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: LegalPackageModalProps) {
   const [activeTab, setActiveTab] = useState<DocumentTab>(initialTab || 'TERM_SHEET');
-  const [signoffRecord, setSignoffRecord] = useState<{ signedBy: string; timestamp: string } | null>(null);
+  const { state, dispatch } = useAppState();
+  const [reviewerName, setReviewerName] = useState<string>(getDeskUserName);
 
-  const { can, user } = useAuth();
+  // The sign-off lives on the saved deal (state.dealSignoffs) so it survives a reload and shows in
+  // the Deal Blotter. A deal that is not on the blotter yet cannot carry one.
+  const isSaved = state.savedAssessments.some(a => a.id === assessment?.id);
+  const signoff = assessment ? state.dealSignoffs?.[assessment.id] ?? null : null;
 
   useEffect(() => {
     if (initialTab) {
@@ -84,24 +87,11 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
   const isBlocked = assessment.eligibility.overallVerdict === 'HARD_BLOCK';
 
   const handleComplianceSignoff = () => {
-    if (!can('COMPLIANCE_SIGNOFF')) {
-      alert('Statutory compliance sign-off requires COMPLIANCE_OFFICER permission. Switch role in Header.');
-      return;
-    }
-    const now = new Date().toISOString();
-    setSignoffRecord({
-      signedBy: user.name,
-      timestamp: now,
-    });
-    apiClient.transitionDeal(
-      assessment.id,
-      'PRICED',
-      user.name,
-      user.role,
-      `Compliance review recorded by ${user.name} (${user.role})`
-    ).catch(() => {});
-    deskSync.broadcastDealTransitioned(assessment.id, null, 'PRICED');
-    showToast(`Compliance review recorded by ${user.name}`);
+    if (!isSaved) return;
+    const by = reviewerName.trim() || getDeskUserName();
+    setDeskUserName(by);
+    dispatch({ type: 'SET_COMPLIANCE_SIGNOFF', id: assessment.id, by, at: new Date().toISOString() });
+    showToast(`Compliance review recorded by ${by}`);
   };
 
   const termsPanelNode = (
@@ -236,8 +226,10 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
         {/* MODAL FOOTER BAR */}
         <LegalPackageFooter
           assessment={assessment}
-          signoffRecord={signoffRecord}
-          canSignoff={can('COMPLIANCE_SIGNOFF')}
+          signoff={signoff}
+          isSaved={isSaved}
+          reviewerName={reviewerName}
+          onReviewerNameChange={setReviewerName}
           onComplianceSignoff={handleComplianceSignoff}
           onDownloadTermSheetPdf={handleDownloadTermSheetPdf}
           onDownloadEfetPdf={handleDownloadEfetPdf}

@@ -68,6 +68,7 @@ function repairRequiredFields(migrated: AppState): void {
   if (!migrated.pricingRunMeta || typeof migrated.pricingRunMeta !== 'object') migrated.pricingRunMeta = defaults.pricingRunMeta;
   if (!migrated.referenceRowIds || typeof migrated.referenceRowIds !== 'object') migrated.referenceRowIds = {};
   if (!Array.isArray(migrated.savedAssessments)) migrated.savedAssessments = [];
+  if (!migrated.dealSignoffs || typeof migrated.dealSignoffs !== 'object' || Array.isArray(migrated.dealSignoffs)) migrated.dealSignoffs = {};
   if (!migrated.costs || typeof migrated.costs !== 'object') migrated.costs = defaults.costs;
   if (!migrated.costsSource || typeof migrated.costsSource !== 'object') migrated.costsSource = defaults.costsSource;
   if (migrated.selectedMarketId === undefined) migrated.selectedMarketId = null;

@@ -5,6 +5,7 @@ import { Sheet } from '../shared/ui/Sheet';
 import { useAppState, buildDeskBackupFile } from '../store/context';
 import { useTheme } from '../store/theme';
 import { showToast } from './DeskToastContainer';
+import { getSaveIndicator } from './saveStatus';
 import { getInstallState, promptInstall, subscribeInstall } from './installPrompt';
 import './mobileShell.css';
 
@@ -17,6 +18,7 @@ export interface DeskSheetProps {
   onBackup: () => void;
   onRestoreFile: (file: File) => Promise<void>;
   isSaving: boolean;
+  saveFailed?: boolean;
   simulatedCount: number;
   dataSourceText: string;
 }
@@ -31,6 +33,7 @@ export function DeskSheet({
   onBackup,
   onRestoreFile,
   isSaving,
+  saveFailed = false,
   simulatedCount,
   dataSourceText,
 }: DeskSheetProps) {
@@ -42,7 +45,13 @@ export function DeskSheet({
   useEffect(() => subscribeInstall(() => setInstallState(getInstallState())), []);
 
   const handleBackupClick = async () => {
-    const file = buildDeskBackupFile(state);
+    let file: File;
+    try {
+      file = buildDeskBackupFile(state);
+    } catch {
+      showToast('Failed to create desk backup');
+      return;
+    }
     const canShareFiles = typeof navigator !== 'undefined' && typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] });
 
     if (canShareFiles) {
@@ -99,7 +108,6 @@ export function DeskSheet({
           <span className="desk-sheet-row-label">Theme</span>
           <span className="desk-sheet-row-value">{theme === 'dark' ? 'Dark' : 'Light'}</span>
         </button>
-        {/* Connectors hidden from the nav until there are live data feeds; the route stays so it can come back. */}
       </div>
 
       <div className="desk-sheet-group">
@@ -107,10 +115,10 @@ export function DeskSheet({
         <div className="desk-sheet-row desk-sheet-row--static">
           <span
             className="desk-sheet-save-dot"
-            style={{ backgroundColor: isSaving ? '#f59e0b' : '#10b981', boxShadow: isSaving ? '0 0 6px #f59e0b' : '0 0 6px #10b981' }}
+            style={{ backgroundColor: getSaveIndicator(isSaving, saveFailed).color, boxShadow: getSaveIndicator(isSaving, saveFailed).glow }}
             aria-hidden="true"
           />
-          <span className="desk-sheet-row-label">{isSaving ? 'Saving…' : 'Auto-saved'}</span>
+          <span className="desk-sheet-row-label">{getSaveIndicator(isSaving, saveFailed).label}</span>
         </div>
         <button type="button" className="desk-sheet-row" onClick={handleBackupClick}>
           <Share size={17} className="desk-sheet-row-icon" aria-hidden="true" />

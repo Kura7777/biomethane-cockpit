@@ -21,8 +21,12 @@ export function registerPWA() {
       registration = reg;
     },
     onNeedRefresh() {
-      // Auto-update immediately so traders on mobile PWAs never get stranded on stale cache
-      updateSW(true);
+      // Never reload under the trader: a forced reload throws away unsaved form input. The new
+      // service worker waits (registerType 'prompt', no skipWaiting) until the trader chooses.
+      showToast('New version available', undefined, {
+        actionLabel: 'Reload',
+        onAction: () => { void updateSW(true); },
+      });
     },
     onOfflineReady() {
       showToast('Desk ready to work offline');

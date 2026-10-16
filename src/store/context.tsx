@@ -54,6 +54,8 @@ export interface AppContextValue {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
   isSaving: boolean;
+  /** True when the most recent autosave to localStorage failed (quota/blocked): nothing is persisting. */
+  saveFailed: boolean;
   lastSavedAt: Date | null;
   priorCloseMarks: MarksState | null;
   snapshotPriorClose: (marks?: MarksState) => void;
@@ -64,6 +66,7 @@ const AppContext = createContext<AppContextValue | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, null, getInitialState);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(() => new Date());
   const [priorCloseMarks, setPriorCloseMarks] = useState<MarksState | null>(() => getStoredPriorCloseMarks());
 
@@ -89,9 +92,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         setLastSavedAt(new Date());
+        setSaveFailed(false);
         saveFailureShown.current = false;
       } catch (e) {
         console.warn('Failed to save state to localStorage', e);
+        setSaveFailed(true);
         if (!saveFailureShown.current) {
           saveFailureShown.current = true;
           showToast(
@@ -124,7 +129,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AppContext.Provider value={{ state, dispatch, isSaving, lastSavedAt, priorCloseMarks, snapshotPriorClose }}>
+    <AppContext.Provider value={{ state, dispatch, isSaving, saveFailed, lastSavedAt, priorCloseMarks, snapshotPriorClose }}>
       {children}
     </AppContext.Provider>
   );

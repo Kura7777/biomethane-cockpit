@@ -3,7 +3,6 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { visualizer } from 'rollup-plugin-visualizer';
-import { apiServerPlugin } from './src/server/vitePlugin';
 
 import { execSync } from 'child_process';
 
@@ -62,9 +61,8 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    apiServerPlugin(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt', // a new build shows a Reload toast; it never reloads the page under the trader
       injectRegister: null, // we call registerSW ourselves from src/app/pwa.ts
       strategies: 'generateSW',
       // Without this, vite-plugin-pwa treats an asset that exceeds
@@ -106,7 +104,7 @@ export default defineConfig({
         // multi-MB plant/data chunks out of the precache; they're runtime-cached below.
         cleanupOutdatedCaches: true,
         clientsClaim: true,
-        skipWaiting: true,
+        skipWaiting: false,
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [

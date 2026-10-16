@@ -8,9 +8,18 @@ import './index.css'
 window.addEventListener('vite:preloadError', (event) => {
   event.preventDefault();
   const reloadKey = 'chunk_reload_loop';
-  const lastReload = parseInt(sessionStorage.getItem(reloadKey) || '0', 10);
+  let lastReload = 0;
+  try {
+    lastReload = parseInt(sessionStorage.getItem(reloadKey) || '0', 10);
+  } catch {
+    return; // storage blocked: cannot guard against a reload loop, so do not reload
+  }
   if (Date.now() - lastReload > 8000) {
-    sessionStorage.setItem(reloadKey, String(Date.now()));
+    try {
+      sessionStorage.setItem(reloadKey, String(Date.now()));
+    } catch {
+      return;
+    }
     window.location.reload();
   }
 });

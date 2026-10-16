@@ -17,6 +17,11 @@ export const CURRENT_SCHEMA_VERSION = 16;
 /** Where a scalar CostInputs field's current value came from, for the Pricing desk → Costs tab. */
 export type CostFieldSource = 'SIMULATED' | 'MANUAL';
 
+export interface DealSignoff {
+  by: string;
+  at: string; // ISO timestamp
+}
+
 // State shape
 export interface AppState {
   schemaVersion: number;
@@ -30,6 +35,8 @@ export interface AppState {
   /** Per-field provenance for state.costs (producerPricing carries its own `source` instead). */
   costsSource: Record<string, CostFieldSource>;
   savedAssessments: TradeAssessment[];
+  /** Compliance review stamps by saved deal id. Local label + timestamp only (see shared/identity/deskUser). */
+  dealSignoffs: Record<string, DealSignoff>;
   selectedMarketId: string | null;
 }
 
@@ -45,7 +52,8 @@ export type AppAction =
   | { type: 'SET_ACTIVE_CONSIGNMENT'; id: string | null }
   | { type: 'SET_COSTS'; costs: Partial<CostInputs> }
   | { type: 'SAVE_ASSESSMENT'; assessment: TradeAssessment }
-  | { type: 'DELETE_ASSESSMENT'; id: string }
+  | { type: 'DELETE_ASSESSMENT'; id: string; /** Required to delete an AGREED / TRANSFERRED deal. */ confirmed?: boolean }
+  | { type: 'SET_COMPLIANCE_SIGNOFF'; id: string; by: string; at: string }
   | { type: 'SET_ASSESSMENT_STATUS'; id: string; status: AssessmentStatus; note?: string }
   | { type: 'UPDATE_ASSESSMENT_NOTES'; id: string; notes: string }
   | { type: 'SELECT_MARKET'; id: string | null }
@@ -91,6 +99,7 @@ export function createDefaultState(): AppState {
       greenAlpha: 'MANUAL',
     },
     savedAssessments: [],
+    dealSignoffs: {},
     selectedMarketId: 'DE_THG',
   };
 }
