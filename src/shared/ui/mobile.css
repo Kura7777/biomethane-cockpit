@@ -18,17 +18,13 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  /* Android Chrome & modern mobile: clean, proportional 14px form inputs that harmonize with the typography scale */
+  /* iOS zooms the viewport on focusing any input under 16px; keep the visual size the same
+     by trimming padding/height instead of shrinking the font. !important is deliberate here:
+     this has to win over any feature-authored input styling (src/features/**, out of scope
+     for this pass) that hardcodes a smaller font-size, wherever it sits in load order. */
   input, select, textarea, .input {
-    font-size: 14px;
+    font-size: 16px !important;
     font-family: var(--font-body);
-  }
-
-  /* Only iOS Safari requires 16px to prevent automatic zooming on input focus */
-  @supports (-webkit-touch-callout: none) {
-    input, select, textarea, .input {
-      font-size: 16px !important;
-    }
   }
 
   textarea.input {
