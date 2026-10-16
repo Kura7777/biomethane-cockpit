@@ -469,7 +469,8 @@ export function ets1AvoidedValuePerMWh(marks: MarksState): number | null {
     feedstockName: 'Manure',
     annexClassification: 'IX_A',
     carbonIntensity: 0,
-    commissioningDateRange: 'POST_2021_TO_2025',
+    commissioningDateRange: 'POST_2021_TO_2025', // no plant linked: strictest bar, flagged as assumed
+    commissioningDateAssumed: true,
     certificationScheme: 'ISCC_EU',
     chainOfCustody: 'MASS_BALANCE',
     injectionCountry: 'EU',

@@ -510,7 +510,7 @@ export async function runHelperTool(name: string, input: unknown, ctx: HelperToo
         };
       } else {
         if (!rawText.trim()) throw new Error('text or marks is required to parse broker marks');
-        res = parseBrokerRunText(rawText, broker, date);
+        res = parseBrokerRunText(rawText, broker, date, ctx.marks.fx?.gbpEur ?? undefined);
       }
 
       if (ctx.onStageMarks) {
