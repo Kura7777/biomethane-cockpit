@@ -18,7 +18,9 @@ describe('Origination Pipeline & Fleet Enrichment Integrity', () => {
     // Provenance must cite ODRE / GRTgaz
     const sample = frPlants[0];
     expect(sample.provenance).toContain('ODRE');
-    expect(sample.isVerified).toBe(true);
+    // aud-sd: the French census capacity is kW converted to Nm3/h, so the plant is not source-verified.
+    expect(sample.dataQuality?.capacityConvertedFromKw).toBe(true);
+    expect(sample.isVerified).toBe(false);
   });
 
   it('correctly models German Post-EEG 2027 subsidy cliff attributes', () => {

@@ -134,7 +134,7 @@ export function ggeReadiness(compliance: PlantCompliance | null | undefined, now
       ? { id: 'aid', label: 'No operating aid', status: 'FLAG', detail: compliance.aidNote || 'Operating aid found (often entity-level electricity support): confirm it is not fed by this digester.' }
       : aid === 'INVESTMENT_ONLY'
         ? { id: 'aid', label: 'No operating aid', status: 'OK', detail: 'Investment aid or loans only (allowed on the Dutch side). Confirm the GO support field.' }
-        : { id: 'aid', label: 'No operating aid', status: 'OK', detail: 'None found in public records. Confirm the GO support field.' },
+        : { id: 'aid', label: 'No operating aid', status: 'UNKNOWN', detail: 'None found in public records, which is not confirmation that there is no aid. Confirm the GO support field.' },
   );
 
   const prtr = compliance.prtrGrant;

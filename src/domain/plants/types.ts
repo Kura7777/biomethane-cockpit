@@ -37,6 +37,10 @@ export interface PlantDataQuality {
   placeholderRegion: boolean;      // "<Country> Grid Injection Zone"
   duplicateOf: string | null;      // id of an identical earlier record (name, capacity, energy, coordinates)
   contactConfidence?: ContactConfidence;
+  /** legalEntityName is a generated template ("Bioenergie <Town> Verwaltungs GmbH" ...), not a register entity. */
+  syntheticLegalEntity?: boolean;
+  /** Source capacity was in kW (French census); capacityNm3h was converted at 10 kWh/Nm3 and is not source-verified. */
+  capacityConvertedFromKw?: boolean;
 }
 
 export interface BiomethanePlant {
@@ -257,6 +261,8 @@ export interface RegisterMatch {
   checkedAt: string;                   // ISO date
   best: RegisterMatchCandidate | null; // set only for MATCHED
   candidates: RegisterMatchCandidate[];// top 3 for AMBIGUOUS
+  /** Set when a same-name MATCHED was downgraded to AMBIGUOUS because the register unit is too far from the plant. */
+  distanceKm?: number;
 }
 
 export interface CommercialContactLead {

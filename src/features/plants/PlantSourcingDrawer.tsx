@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { legalEntityForHandoff } from '../../domain/plants/statutoryDossiers';
 import { useNavigate } from 'react-router-dom';
 import { BiomethanePlant, TraderDeskOverride } from '../../domain/plants/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
@@ -163,7 +164,8 @@ export function PlantSourcingDrawer({ plant, onClose }: PlantSourcingDrawerProps
   };
 
   const handleLaunchTrade = () => {
-    const verifiedLegal = deskOverride?.counterpartySignatory || plant.verifiedDossier?.officialLegalEntity || undefined;
+    // A signatory is a person, never a legal entity; only register/research-confirmed entities pass.
+    const verifiedLegal = legalEntityForHandoff(plant);
     const verifiedEmail = deskOverride?.directEmail || undefined;
     const verifiedPhone = deskOverride?.directPhone || undefined;
 

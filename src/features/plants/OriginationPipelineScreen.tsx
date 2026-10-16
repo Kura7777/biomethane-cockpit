@@ -1,4 +1,7 @@
 import React, { useState, useMemo, useDeferredValue } from 'react';
+import { buildCsv, downloadCsvFile } from '../../domain/companies/csv';
+import { sourcedSupportExpiryYear } from '../../domain/plants/dataQuality';
+import { legalEntityForHandoff, plantEntityLabel } from '../../domain/plants/statutoryDossiers';
 import { useNavigate } from 'react-router-dom';
 import { COMBINED_BIOMETHANE_PLANTS } from '../../domain/plants/registry';
 import { BiomethanePlant } from '../../domain/plants/types';
@@ -116,9 +119,10 @@ export function OriginationPipelineScreen() {
       if (feedstockFilter === 'LANDFILL' && !(s.includes('landfill') || s.includes('deponie') || s.includes('isdnd'))) return false;
 
       // Expiry / Scheme
-      const expiryYear = p.supportExpiryDate ? parseInt(p.supportExpiryDate.substring(0, 4), 10) : (p.commissioningYear ? p.commissioningYear + 20 : 2027);
-      if (expiryFilter === 'EXPIRING_SOON' && expiryYear > 2027) return false;
-      if (expiryFilter === 'ACTIVE_SUBSIDY' && expiryYear <= 2027) return false;
+      // Only a sourced expiry date counts (never a default year); plants without one match neither filter.
+      const expiryYear = sourcedSupportExpiryYear(p);
+      if (expiryFilter === 'EXPIRING_SOON' && (expiryYear === null || expiryYear > 2027)) return false;
+      if (expiryFilter === 'ACTIVE_SUBSIDY' && (expiryYear === null || expiryYear <= 2027)) return false;
       if (expiryFilter === 'MERCHANT' && p.supportScheme && p.supportScheme !== 'NONE') return false;
 
       return true;
@@ -127,20 +131,21 @@ export function OriginationPipelineScreen() {
 
   // Aggregate Stats
   const stats = useMemo(() => {
-    const subset = selectedCountry === 'ALL' 
-      ? COMBINED_BIOMETHANE_PLANTS 
-      : COMBINED_BIOMETHANE_PLANTS.filter(p => p.countryCode === selectedCountry);
+    // Duplicate census rows are excluded from every sum.
+    const subset = (selectedCountry === 'ALL'
+      ? COMBINED_BIOMETHANE_PLANTS
+      : COMBINED_BIOMETHANE_PLANTS.filter(p => p.countryCode === selectedCountry)
+    ).filter(p => !p.dataQuality?.duplicateOf);
 
     const totalGWh = subset.reduce((sum, p) => sum + (p.annualEnergyGWh || 0), 0);
     const critical = subset.filter(p => {
-      const yr = p.supportExpiryDate ? parseInt(p.supportExpiryDate.substring(0, 4), 10) : 2027;
-      return yr <= 2027;
+      const yr = sourcedSupportExpiryYear(p);
+      return yr !== null && yr <= 2027;
     });
+    const withSourcedExpiry = subset.filter(p => sourcedSupportExpiryYear(p) !== null).length;
     const criticalGWh = critical.reduce((sum, p) => sum + (p.annualEnergyGWh || 0), 0);
-    const manureCount = subset.filter(p => {
-      const s = `${p.primaryFeedstockCategory || ''} ${p.feedstockDetails || ''}`.toLowerCase();
-      return s.includes('manure') || s.includes('slurry') || s.includes('gülle') || s.includes('lisier');
-    }).length;
+    // Deep-negative-CI count uses the desk's per-feedstock CI (the same CI every screen uses), not a text guess.
+    const manureCount = subset.filter(p => plantCi(p).ci < 0).length;
 
     return {
       totalPlants: subset.length,
@@ -148,6 +153,7 @@ export function OriginationPipelineScreen() {
       criticalCount: critical.length,
       criticalGWh: Math.round(criticalGWh),
       manureCount,
+      withSourcedExpiry,
     };
   }, [selectedCountry]);
 
@@ -230,12 +236,6 @@ export function OriginationPipelineScreen() {
       'Headquarters Address'
     ];
 
-    const csvSafe = (val: string | number | null | undefined): string => {
-      if (val === null || val === undefined) return '""';
-      const str = String(val).replace(/"/g, '""');
-      return /^[=+\-@]/.test(str) ? `"'${str}"` : `"${str}"`;
-    };
-
     const rows = filteredPipeline.map(p => {
       const q = p.contactQuality;
       const flags = (q?.reasons || []).join('; ');
@@ -243,47 +243,38 @@ export function OriginationPipelineScreen() {
       const searchUrl = reg?.searchUrl || reg?.url || '';
 
       return [
-        csvSafe(p.id),
-        csvSafe(p.name),
-        csvSafe(p.countryCode),
-        p.commissioningYear ?? '',
-        csvSafe(p.companyRegistrationId || ''),
-        csvSafe(p.supportScheme || 'National Feed-in Tariff / Guarantees of Origin'),
-        p.annualEnergyGWh ?? '',
-        csvSafe(p.primaryFeedstockCategory || ''),
+        p.id,
+        p.name,
+        p.countryCode,
+        p.commissioningYear ?? null,
+        p.companyRegistrationId || '',
+        p.supportScheme || 'No support scheme on record',
+        p.annualEnergyGWh ?? null,
+        p.primaryFeedstockCategory || '',
         plantCi(p).ci,
-        csvSafe(q?.confidenceLabel || 'Unverified Lead'),
-        csvSafe(flags),
-        csvSafe(reg?.registerName || ''),
-        csvSafe(searchUrl),
-        csvSafe(p.corporateWebsite || ''),
-        csvSafe(p.contactEmail || ''),
-        csvSafe(p.contactPhone || ''),
-        csvSafe(p.networkOperator || ''),
-        csvSafe(p.operator || p.legalEntityName || ''),
-        csvSafe(p.headquartersAddress || '')
+        q?.confidenceLabel || 'Unverified Lead',
+        flags,
+        reg?.registerName || '',
+        searchUrl,
+        p.corporateWebsite || '',
+        p.contactEmail || '',
+        p.contactPhone || '',
+        p.networkOperator || '',
+        p.operator || p.legalEntityName || '',
+        p.headquartersAddress || ''
       ];
     });
 
-    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `Biomethane_Origination_Pipeline_${selectedCountry}_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsvFile(`Biomethane_Origination_Pipeline_${selectedCountry}_${new Date().toISOString().slice(0, 10)}.csv`, buildCsv(headers, rows));
   };
 
   // 1-Click Deal Structuring via buildDealUrl
   const handleStructureOfftake = (plant: BiomethanePlant) => {
     const url = buildDealUrl({
       ...plantDealParams(plant),
-      legalEntityName: plant.legalEntityName || plant.operator || undefined,
-      contactEmail: plant.contactEmail || undefined,
-      contactPhone: plant.contactPhone || undefined,
-      scheme: normalizePlantScheme(plant.certificationScheme),
+      legalEntityName: legalEntityForHandoff(plant),
+      // No scheme is forced on a plant that has none on record.
+      scheme: plant.certificationScheme ? normalizePlantScheme(plant.certificationScheme) : undefined,
     });
 
     navigate(url);
@@ -423,14 +414,14 @@ export function OriginationPipelineScreen() {
       {/* KPI Cards */}
       <div className="opl-kpis" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
         <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
-          <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', fontWeight: 600 }}>Active Assets Monitored</div>
+          <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', fontWeight: 600 }}>Plants in view (census, duplicates excluded)</div>
           <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--color-text-primary)', marginTop: '4px' }}>
             {stats.totalPlants.toLocaleString()} plants <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>({stats.totalGWh.toLocaleString()} GWh/yr)</span>
           </div>
         </div>
 
         <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-status-neg-border, rgba(239, 68, 68, 0.4))', borderRadius: 'var(--radius-panel)' }}>
-          <div style={{ fontSize: '12px', color: 'var(--color-status-neg-text, #ef4444)', fontWeight: 600 }}>Subsidy Cliff / Post-Tariff (&le; 2027)</div>
+          <div style={{ fontSize: '12px', color: 'var(--color-status-neg-text, #ef4444)', fontWeight: 600 }}>Subsidy Cliff / Post-Tariff (&le; 2027, sourced dates only: {stats.withSourcedExpiry} of {stats.totalPlants} plants have one)</div>
           <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--color-status-neg-text, #ef4444)', marginTop: '4px' }}>
             {stats.criticalCount} sites <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>({stats.criticalGWh.toLocaleString()} GWh/yr)</span>
           </div>
@@ -439,7 +430,7 @@ export function OriginationPipelineScreen() {
         <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)' }}>
           <div style={{ fontSize: '12px', color: 'var(--color-pnl-pos, var(--color-accent))', fontWeight: 600 }}>High-Margin Manure / Deep Negative CI</div>
           <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--color-pnl-pos, var(--color-accent))', marginTop: '4px' }}>
-            {stats.manureCount} sites <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>(deep negative CI)</span>
+            {stats.manureCount} sites <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>(feedstock-default CI below zero, estimated)</span>
           </div>
         </div>
 
@@ -568,7 +559,7 @@ export function OriginationPipelineScreen() {
                 span: 2,
                 value: (
                   <>
-                    <div>{p.verifiedDossier?.officialLegalEntity || 'Operator not identified'}</div>
+                    <div>{(() => { const e = plantEntityLabel(p); return e.text ? `${e.text}${e.unverified ? ' (unverified)' : ''}` : 'Operator not identified'; })()}</div>
                     <div className="font-mono" style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
                       {p.companyRegistrationId || 'Registration ID not verified'}
                     </div>
@@ -656,7 +647,7 @@ export function OriginationPipelineScreen() {
                   {/* Operating Entity & Registration */}
                   <td style={{ padding: '10px 14px' }}>
                     <div style={{ fontWeight: 500, color: 'var(--color-text-primary)', maxWidth: '240px' }} className="truncate">
-                      {p.verifiedDossier?.officialLegalEntity || 'Operator not identified'}
+                      {(() => { const e = plantEntityLabel(p); return e.text ? `${e.text}${e.unverified ? ' (unverified)' : ''}` : 'Operator not identified'; })()}
                     </div>
                     <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontFamily: 'monospace' }} className="truncate">
                       {p.companyRegistrationId || 'Registration ID not verified'}

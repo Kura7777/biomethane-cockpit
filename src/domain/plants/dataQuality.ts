@@ -1,6 +1,6 @@
-import { BiomethanePlant, PlantDataQuality } from './types';
+import { BiomethanePlant, PlantDataQuality, RegisterMatch } from './types';
 import { buildContactFrequencyIndex, evaluatePlantContactQuality } from './contactQuality';
-import { getVerifiedPlantDossier } from './statutoryDossiers';
+import { getVerifiedPlantDossier, isTemplateLegalEntityName } from './statutoryDossiers';
 import { REGISTRATION_CHECKS } from './registrationChecks.generated';
 import { REGISTER_MATCHES } from './registerMatches.generated';
 import { PLANT_RESEARCH } from './plantResearch.generated';
@@ -51,10 +51,49 @@ const CORPORATE_FIELDS = [
   'contactPhone',
   'headquartersAddress',
   'commissioningYear',
+  'supportExpiryDate',
 ] as const;
 
 /** Fields that `isVerified` attests to (see BiomethanePlant.isVerified). */
 const CORE_FIELDS = ['coordinates', 'capacityNm3h', 'annualEnergyGWh', 'primaryFeedstockCategory'] as const;
+
+/** A register unit further than this from the plant is not accepted as the same site. */
+export const REGISTER_MATCH_MAX_KM = 25;
+
+/** Great-circle distance in km between two [lat, lon] points. */
+export function distanceKm(a: [number, number], b: [number, number]): number {
+  const R = 6371;
+  const rad = (d: number) => (d * Math.PI) / 180;
+  const dLat = rad(b[0] - a[0]);
+  const dLon = rad(b[1] - a[1]);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a[0])) * Math.cos(rad(b[0])) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+/**
+ * A town-name MATCHED can be a different site of the same name. When both coordinates are real and
+ * the register unit is further than REGISTER_MATCH_MAX_KM, the match is downgraded to AMBIGUOUS and
+ * the distance is shown as evidence.
+ */
+export function applyRegisterDistanceCheck(
+  plantCoordinates: [number, number] | null | undefined,
+  coordinatesAreApproximate: boolean,
+  match: RegisterMatch | null
+): RegisterMatch | null {
+  if (!match || match.status !== 'MATCHED' || !match.best?.coordinates) return match;
+  if (!plantCoordinates || coordinatesAreApproximate) return match;
+  const km = distanceKm(plantCoordinates, match.best.coordinates);
+  if (km <= REGISTER_MATCH_MAX_KM) return match;
+  const rounded = Math.round(km);
+  const best = {
+    ...match.best,
+    evidence: [`${rounded} km from plant coordinates (over ${REGISTER_MATCH_MAX_KM} km: not accepted as the same site)`, ...match.best.evidence],
+  };
+  return { ...match, status: 'AMBIGUOUS', best: null, candidates: [best, ...match.candidates].slice(0, 3), distanceKm: rounded };
+}
+
+/** The app's energy convention (kWh of biomethane per Nm3) used to turn kW into Nm3/h. */
+const KWH_PER_NM3 = 10;
 
 const coordinateKey = (p: BiomethanePlant): string | null => (p.coordinates ? p.coordinates.join(',') : null);
 
@@ -74,6 +113,7 @@ export function normalizePlantRegistry(raw: BiomethanePlant[]): BiomethanePlant[
   const contactIndex = buildContactFrequencyIndex(records);
 
   const firstIdByDuplicateKey = new Map<string, string>();
+  const firstIdByRegisterUnit = new Map<string, string>();
 
   return records.map(p => {
     const unverified = new Set<string>(p.fieldsUnverified ?? []);
@@ -100,15 +140,33 @@ export function normalizePlantRegistry(raw: BiomethanePlant[]): BiomethanePlant[
 
     // Registration ID: show only what a register confirmed; keep the raw claim for audit
     const registrationCheck = REGISTRATION_CHECKS[p.id] ?? null;
-    const registerMatch = REGISTER_MATCHES[p.id] ?? null;
+    const registerMatch = applyRegisterDistanceCheck(p.coordinates, approximateCoordinates, REGISTER_MATCHES[p.id] ?? null);
     const research = PLANT_RESEARCH[p.id] ?? null;
     const claimedRegistrationId = p.companyRegistrationId ?? null;
     const companyRegistrationId = registrationCheck?.status === 'CONFIRMED' ? claimedRegistrationId : null;
     if (claimedRegistrationId && !companyRegistrationId) unverified.add('companyRegistrationId');
 
     const dupKey = duplicateKey(p);
-    const duplicateOf = firstIdByDuplicateKey.get(dupKey) ?? null;
+    let duplicateOf = firstIdByDuplicateKey.get(dupKey) ?? null;
     if (duplicateOf === null) firstIdByDuplicateKey.set(dupKey, p.id);
+
+    // The register matcher can find two census rows pointing at the same register unit
+    // ("duplicate census record"): propagate that as a duplicate of the first row.
+    const unitId = registerMatch?.status === 'MATCHED' ? registerMatch.best?.unitId ?? null : null;
+    if (unitId && registerMatch?.best?.evidence.some(e => /duplicate census record/i.test(e))) {
+      const first = firstIdByRegisterUnit.get(unitId);
+      if (first === undefined) firstIdByRegisterUnit.set(unitId, p.id);
+      else if (duplicateOf === null && first !== p.id) duplicateOf = first;
+    }
+
+    // French census "capacityNm3h" is kW (energy / (capacity x 8000 h) = 1 for every FR row, ~10 elsewhere).
+    // Convert at the app's 10 kWh/Nm3 convention and never claim it as source-verified.
+    const capacityConvertedFromKw = p.countryCode === 'FR' && typeof p.capacityNm3h === 'number';
+    const capacityNm3h = capacityConvertedFromKw ? Math.round((p.capacityNm3h as number) / KWH_PER_NM3) : p.capacityNm3h;
+    if (capacityConvertedFromKw) unverified.add('capacityNm3h');
+
+    const syntheticLegalEntity = isTemplateLegalEntityName(p.legalEntityName);
+    if (syntheticLegalEntity) unverified.add('legalEntityName');
 
     const dataQuality: PlantDataQuality = {
       approximateCoordinates,
@@ -116,10 +174,13 @@ export function normalizePlantRegistry(raw: BiomethanePlant[]): BiomethanePlant[
       placeholderRegion,
       duplicateOf,
       contactConfidence: contactQuality.confidence,
+      syntheticLegalEntity,
+      capacityConvertedFromKw,
     };
 
     return {
       ...p,
+      capacityNm3h,
       companyRegistrationId,
       claimedRegistrationId,
       registrationCheck,
@@ -129,8 +190,20 @@ export function normalizePlantRegistry(raw: BiomethanePlant[]): BiomethanePlant[
       isVerified: Boolean(p.isVerified) && duplicateOf === null && !CORE_FIELDS.some(f => unverified.has(f)),
       dataQuality,
       contactQuality,
-      verifiedDossier: getVerifiedPlantDossier({ ...p, companyRegistrationId, registrationCheck, registerMatch, contactQuality, research }),
+      verifiedDossier: getVerifiedPlantDossier({ ...p, capacityNm3h, companyRegistrationId, registrationCheck, registerMatch, contactQuality, research }),
     };
   });
 }
 
+
+/**
+ * Support-scheme expiry year, ONLY when the record carries a sourced date. A date on a plant whose
+ * source does not publish support terms (GIE/EBA map) is unverified and never counts; nothing is
+ * defaulted (no "2027 if unknown").
+ */
+export function sourcedSupportExpiryYear(p: Pick<BiomethanePlant, 'supportExpiryDate' | 'fieldsUnverified'>): number | null {
+  if (!p.supportExpiryDate) return null;
+  if ((p.fieldsUnverified ?? []).includes('supportExpiryDate')) return null;
+  const y = parseInt(p.supportExpiryDate.substring(0, 4), 10);
+  return Number.isFinite(y) ? y : null;
+}
