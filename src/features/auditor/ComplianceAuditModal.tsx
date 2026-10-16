@@ -19,22 +19,12 @@ import {
 import { TradeAssessment } from '../../domain/trade/types';
 import { computeNetback } from '../../domain/netback/engine';
 import { Consignment } from '../../domain/consignment/types';
-import { GateName } from '../../domain/eligibility/types';
 import { summariseQuoteProofs } from '../../domain/auditor/verifier';
 import { evaluateEligibility } from '../../domain/eligibility/engine';
 import { showToast } from '../../app/DeskToastContainer';
 import { MARKETS } from '../../domain/markets/registry';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import './auditorModal.css';
-
-const STATUTORY_GATE_NAMES: GateName[] = [
-  'SCHEME_RECOGNITION',
-  'UDB_RECORDING',
-  'CHAIN_OF_CUSTODY',
-  'FEEDSTOCK_CATEGORY',
-  'GHG_THRESHOLD',
-  'MARKET_SPECIFIC',
-];
 
 export type { AuditorModalTab };
 
