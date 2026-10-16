@@ -1,4 +1,5 @@
 import React from 'react';
+import { csvCell as sharedCsvCell, downloadCsvFile } from '../../domain/companies/csv';
 import { BiomethaneFit } from '../../domain/ets1/sites';
 
 /** Outreach status, shared by the ETS1 and ETS2 lists (each keeps its own storage key). */
@@ -15,7 +16,9 @@ export const STATUS_LABEL: Record<OutreachStatus, string> = {
 export function readStatuses(key: string): Record<string, OutreachStatus> {
   try {
     const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as Record<string, OutreachStatus>) : {};
+    const parsed: unknown = raw ? JSON.parse(raw) : null;
+    // A stored `null`, array or primitive must not reach Object.values(): treat it as empty.
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as Record<string, OutreachStatus>) : {};
   } catch {
     return {};
   }
@@ -113,21 +116,13 @@ export function tonnes(t: number): string {
   return `${Math.round(t).toLocaleString('en-GB')} t`;
 }
 
+/** Shared safe CSV cell (quoting + formula-injection guard): see domain/companies/csv.ts. */
 export function csvCell(value: string | number | null): string {
-  if (value === null) return '';
-  const text = String(value);
-  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  return sharedCsvCell(value);
 }
 
 export function downloadCsv(filename: string, lines: string[]): void {
-  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  // Revoke after the click has been handled, or some browsers cancel the download.
-  setTimeout(() => URL.revokeObjectURL(url), 0);
+  downloadCsvFile(filename, lines.join(String.fromCharCode(10)));
 }
 
 export function parseNumber(text: string): number | null {

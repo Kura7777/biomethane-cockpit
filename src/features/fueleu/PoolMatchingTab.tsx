@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { NO_POOL_MARK, type FuelEuPoolPrices } from '../../domain/fueleu/marketPrices';
 import { useFuelEuPrices } from './useFuelEuPrices';
 import { FUELEU_POOLING_BORROWING_DATABASE_DEADLINE } from '../../domain/fueleu/calculator';
+import { FUELEU_POOL_INDEX_HISTORY } from '../../domain/markets/fueleuPoolIndexHistory';
 import { PoolPriceMark } from './PoolPriceMark';
 import { FuelEuPoolIndexChart } from './FuelEuPoolIndexChart';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
@@ -98,7 +99,12 @@ function PoolMatchingTabInner({ highlightGroupId, pool }: PoolMatchingTabProps &
 
       <div style={{ padding: '6px 18px', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
         <div style={{ fontSize: '12px', color: 'var(--color-muted)', lineHeight: 1.5 }}>
-          Large blocks: August 2026 volume-weighted month-end €83.13 vs €114.42 unweighted. Bids for large volumes may need to sit below the desk bid.
+          {(() => {
+            const row = [...FUELEU_POOL_INDEX_HISTORY].reverse().find(r => r.closeWeighted !== undefined && r.close !== undefined);
+            return row
+              ? `Large blocks: ${row.period} volume-weighted month-end €${row.closeWeighted!.toFixed(2)} vs €${row.close!.toFixed(2)} unweighted (${row.source}). Bids for large volumes may need to sit below the desk bid.`
+              : 'Bids for large volumes may need to sit below the desk bid.';
+          })()}
         </div>
       </div>
 

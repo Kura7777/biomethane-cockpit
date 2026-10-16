@@ -121,7 +121,7 @@ export function computeRegulationExposure(
 ): RegulationExposure {
   const eua = selectMarkPrice(marks.marks['EU_ETS1'], 'mid');
   const ets2Price = selectMarkPrice(marks.marks['EU_ETS2'], 'mid');
-  const poolMid = selectMarkPrice(marks.marks['FUELEU'], 'mid');
+  const poolOffer = selectMarkPrice(marks.marks['FUELEU'], 'offer');
 
   const fuelEuPenaltyEur = p.fueleu.length ? p.fueleu.reduce((s, f) => s + f.penalty2026Eur, 0) : null;
   const fuelEuDeficitTco2e = p.fueleu.length ? p.fueleu.reduce((s, f) => s + f.deficit2026Tco2e, 0) : null;
@@ -131,9 +131,9 @@ export function computeRegulationExposure(
     if (fuelEuDeficitTco2e <= 0) {
       fuelEuState = 'COMPLIANT';
       fuelEuCostEur = 0;
-    } else if (poolMid !== null) {
+    } else if (poolOffer !== null) {
       fuelEuState = 'PRICED';
-      fuelEuCostEur = fuelEuDeficitTco2e * poolMid;
+      fuelEuCostEur = fuelEuDeficitTco2e * poolOffer;
     } else {
       fuelEuState = 'NO_MARK';
     }
@@ -330,7 +330,7 @@ function shippingOpportunities(p: CompanyProfile, marks: MarksState, year: numbe
   if (!p.fueleu.length) return [];
   const out: Opportunity[] = [];
   const deficitT = p.fueleu.reduce((s, f) => s + f.deficit2026Tco2e, 0);
-  const poolMid = selectMarkPrice(marks.marks['FUELEU'], 'mid');
+  const poolOffer = selectMarkPrice(marks.marks['FUELEU'], 'offer');
   // Sized on the same basis the value stack prices it: each MWh of −100 bio-LNG moves the FuelEU balance
   // by (target − bio-LNG well-to-wake intensity) tCO2e, so closing the deficit is worth exactly
   // deficit × pool price. (The fleet data's own bio-LNG need uses the ships' fossil intensity instead
@@ -355,7 +355,7 @@ function shippingOpportunities(p: CompanyProfile, marks: MarksState, year: numbe
       why: 'A very small deficit: buying it as pool surplus is simpler than a bunker order.',
       timing: 'NOW',
       volumeMWh: null,
-      valueEur: poolMid === null ? null : deficitT * poolMid,
+      valueEur: poolOffer === null ? null : deficitT * poolOffer,
       valueEurHigh: null,
       valueLabel: 'Compliance at pool price',
       firstDealMWh: null,
@@ -410,7 +410,7 @@ function shippingOpportunities(p: CompanyProfile, marks: MarksState, year: numbe
           : 'It has no LNG-capable ships, so it cannot burn bio-LNG itself — pooling with ships that do is the only biomethane route.',
         timing: 'NOW',
         volumeMWh: poolMWh,
-        valueEur: poolMid === null ? null : ((deficitT * poolMWh) / needMWh) * poolMid,
+        valueEur: poolOffer === null ? null : ((deficitT * poolMWh) / needMWh) * poolOffer,
         valueEurHigh: null,
         valueLabel: 'Compliance at pool price',
         firstDealMWh: null,

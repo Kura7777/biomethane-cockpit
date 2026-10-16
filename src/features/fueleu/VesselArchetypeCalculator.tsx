@@ -54,7 +54,7 @@ const ESCALATION_LABELS: Record<number, string> = {
   1: 'Year 1 (1.00×)',
   2: 'Year 2 (1.10×)',
   3: 'Year 3 (1.20×)',
-  4: 'Year 4+ (1.30×)',
+  4: 'Year 4 (1.30×)',
 };
 
 export interface VesselArchetypeCalculatorProps {

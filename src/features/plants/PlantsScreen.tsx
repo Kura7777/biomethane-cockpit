@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { buildCsv, downloadCsvFile } from '../../domain/companies/csv';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   COMBINED_BIOMETHANE_PLANTS,
@@ -464,36 +465,29 @@ export function PlantsScreen() {
       'Contact Email', 'Contact Phone', 'Address', 'Verified',
     ];
     const rows = sortedPlants.map(p => [
-      `"${p.id || ''}"`,
-      `"${(p.name || '').replace(/"/g, '""')}"`,
-      `"${(p.country || '').replace(/"/g, '""')}"`,
-      `"${p.countryCode || ''}"`,
-      `"${(p.operator || '').replace(/"/g, '""')}"`,
-      `"${(p.legalEntityName || '').replace(/"/g, '""')}"`,
-      `"${(p.companyRegistrationId || '').replace(/"/g, '""')}"`,
-      `"${(p.networkOperator || '').replace(/"/g, '""')}"`,
-      `"${(p.gridConnectionType || '').replace(/"/g, '""')}"`,
-      p.capacityNm3h ?? '',
-      p.annualEnergyGWh ?? '',
-      `"${(p.primaryFeedstockCategory || '').replace(/"/g, '""')}"`,
-      `"${(p.feedstockDetails || '').replace(/"/g, '""')}"`,
+      p.id,
+      p.name,
+      p.country,
+      p.countryCode,
+      p.operator,
+      p.legalEntityName,
+      p.companyRegistrationId,
+      p.networkOperator,
+      p.gridConnectionType,
+      p.capacityNm3h ?? null,
+      p.annualEnergyGWh ?? null,
+      p.primaryFeedstockCategory,
+      p.feedstockDetails,
       plantCi(p).ci,
-      `"${(p.upgradingTechnology || '').replace(/"/g, '""')}"`,
-      p.commissioningYear ?? '',
-      `"${p.corporateWebsite || ''}"`,
-      `"${p.contactEmail || ''}"`,
-      `"${p.contactPhone || ''}"`,
-      `"${(p.headquartersAddress || '').replace(/"/g, '""')}"`,
+      p.upgradingTechnology,
+      p.commissioningYear ?? null,
+      p.corporateWebsite,
+      p.contactEmail,
+      p.contactPhone,
+      p.headquartersAddress,
       p.isVerified ? 'YES' : 'NO',
     ]);
-    const csvContent = 'data:text/csv;charset=utf-8,﻿' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `biomethane_census_filtered_${sortedPlants.length}_plants.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsvFile(`biomethane_census_filtered_${sortedPlants.length}_plants.csv`, buildCsv(headers, rows));
     showToast(`Exported ${sortedPlants.length} facilities to CSV`, 'success');
   };
 

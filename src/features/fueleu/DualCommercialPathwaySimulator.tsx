@@ -34,7 +34,7 @@ const ESCALATION_LABELS: Record<number, string> = {
   1: 'Year 1 (0% escalation)',
   2: 'Year 2 (+10% escalation)',
   3: 'Year 3 (+20% escalation)',
-  4: 'Year 4+ (+30% escalation)',
+  4: 'Year 4 (+30% escalation)',
 };
 
 const LNG_ENGINE_LABELS: Record<LngEngineType, string> = {
