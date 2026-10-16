@@ -585,8 +585,10 @@ Non-EU grid boundary (desk reading): Great Britain's grid is physically linked t
     jurisdiction: 'AT',
     jurisdictionName: 'Austria',
     category: 'NATIONAL_QUOTA_LAW',
-    status: 'IN_FORCE',
-    effectiveDate: 'Enacted with 7.5 TWh national green gas quota target by 2030',
+    // Not confirmed on RIS: the Austrian EGG may not have been enacted (two-thirds majority). Do not claim in force.
+    status: 'UNDER_REVISION',
+    needsVerification: true,
+    effectiveDate: 'UNVERIFIED: enactment not confirmed on RIS. Draft target of 7.5 TWh national green gas quota by 2030',
     primaryArticle: '§§ 3–12 (Grüngasquote & Versorgerverpflichtung)',
     summary: 'Mandates Austrian gas suppliers to substitute natural gas with verified biomethane (reaching 7.5 TWh/year by 2030). Regulated by E-Control and tracked via the AGCS Biomethane Registry.',
     applicableMarkets: ['AT_EGG', 'DE_THG'],
@@ -1472,4 +1474,27 @@ export function searchCitations(query: string): LegalCitation[] {
     c.jurisdictionName.toLowerCase().includes(q) ||
     c.applicableMarkets.some(m => m.toLowerCase().includes(q))
   );
+}
+
+
+const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+
+/**
+ * "Month YYYY" of the latest dated entry in the registry (read from the entries' own date text),
+ * so the consolidation label cannot go stale. Null when no entry carries a parsable date.
+ */
+export function latestCitationDateLabel(citations: { effectiveDate: string; summary?: string }[] = LEGAL_CITATIONS): string | null {
+  let best: { y: number; m: number } | null = null;
+  const re = /(?:\d{1,2}\s+)?(January|February|March|April|May|June|July|August|September|October|November|December)\s+(20\d{2})/gi;
+  for (const c of citations) {
+    for (const text of [c.effectiveDate, c.summary ?? '']) {
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(text)) !== null) {
+        const mo = MONTHS.indexOf(m[1].toLowerCase());
+        const y = Number(m[2]);
+        if (!best || y > best.y || (y === best.y && mo > best.m)) best = { y, m: mo };
+      }
+    }
+  }
+  return best ? `${MONTHS[best.m][0].toUpperCase()}${MONTHS[best.m].slice(1)} ${best.y}` : null;
 }

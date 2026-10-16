@@ -127,25 +127,6 @@ const CORRECTIONS_TEXT: string[] = [
 
 // Compliance markets named in the research (udb_process.md / registries.md) — kept short and honest;
 // not every market referenced elsewhere in the app has a sourced entry here.
-interface ComplianceMarket {
-  id: string;
-  label: string;
-  countryCode: string;
-}
-
-const COMPLIANCE_MARKETS: ComplianceMarket[] = [
-  { id: 'DE_THG', label: 'Germany — THG-Quote', countryCode: 'DE' },
-  { id: 'FR_TIRUERT', label: 'France — TIRUERT', countryCode: 'FR' },
-  { id: 'IT_CIC', label: 'Italy — CIC', countryCode: 'IT' },
-  { id: 'UK_RTFO', label: 'United Kingdom — RTFO', countryCode: 'GB' },
-];
-
-// A handful of specific bilateral/known routes called out explicitly in the research.
-const KNOWN_BILATERAL: { from: string; to: string; note: string; since: string }[] = [
-  { from: 'DK', to: 'DE', note: 'Bilateral agreement between Energinet and dena', since: '1 October 2017' },
-  { from: 'AT', to: 'DE', note: 'Bilateral agreement between AGCS and dena — first of its kind in Europe', since: '2016' },
-];
-
 function triLabel(v: TriState): string {
   if (v === true) return 'Yes';
   if (v === false) return 'No';
@@ -165,72 +146,20 @@ function verificationChipClass(level: RegistryDirectoryEntry['verificationLevel'
 }
 
 // ---------------------------------------------------------------------------
-// Route checker logic
-// ---------------------------------------------------------------------------
-
-interface RouteEvaluation {
-  supported: boolean;
-  headline: string;
-  routeLines: string[];
-  blockerLines: string[];
-  sourceUrls: { label: string; url: string }[];
-}
-
-function evaluateRoute(origin: RegistryDirectoryEntry, destinationCode: string, destIsMarket: boolean, destMarket?: ComplianceMarket, destRegistry?: RegistryDirectoryEntry): RouteEvaluation {
-  const routeLines: string[] = [];
-  const blockerLines: string[] = [];
-  const sourceUrls: { label: string; url: string }[] = [{ label: 'ERGaR CoO scheme statistics', url: ERGAR_STATS_URL }];
-
-  // Known named blockers, regardless of destination
-  if (origin.countryCode === 'IT') {
-    blockerLines.push('Italian plants receiving production incentives (e.g. DM 2022) are blocked from cross-border GO export on Certigy — only non-incentivised plants can export.');
-  }
-  if (origin.countryCode === 'FR') {
-    blockerLines.push('French GOs are reported as usable only in France (GRDF/Cegibat): "there is no European market for guarantees of origin" for French-origin gas.');
-  }
-
-  const bilateral = KNOWN_BILATERAL.find(b => b.from === origin.countryCode && (destIsMarket ? destMarket?.countryCode === b.to : destinationCode === b.to));
-  if (bilateral) {
-    routeLines.push(`Bilateral route: ${bilateral.note}, in place since ${bilateral.since}.`);
-  }
-
-  if (!destIsMarket && destRegistry) {
-    // Registry-to-registry: check ERGaR / AIB overlap
-    if (origin.ergar === true && destRegistry.ergar === true) {
-      routeLines.push(`ERGaR Certificate of Origin (CoO) scheme: both ${origin.countryName} and ${destRegistry.countryName} are confirmed ERGaR participants in this research.`);
-    } else if (origin.ergar === true || destRegistry.ergar === true) {
-      routeLines.push('ERGaR CoO scheme: only one side of this pair is a confirmed ERGaR participant in this research — a direct transfer between these two specific registries was not itemised.');
-    }
-    if (origin.aibGasScheme === true && destRegistry.aibGasScheme === true) {
-      routeLines.push(`AIB EECS Gas Scheme hub: both ${origin.countryName} and ${destRegistry.countryName} are confirmed AIB Gas Scheme Group members, so GO transfer via the hub is structurally supported (specific transaction volumes for this exact pair were not itemised in this research).`);
-    }
-  } else if (destIsMarket && destMarket) {
-    // Registry-to-compliance-market: the GO/PoS distinction from udb_process.md
-    blockerLines.push(
-      `The Guarantee of Origin (GO) issued by ${origin.registryName} is a disclosure instrument (RED Art. 19), not a compliance instrument. Counting toward ${destMarket.label} requires a valid Proof of Sustainability (PoS) chain — via the Union Database (not yet live; launch postponed to end-2026 per EBA) or the relevant national/voluntary sustainability scheme recognised by that compliance market. This research does not confirm whether ${origin.countryName}-origin gas is recognised by ${destMarket.label} at the certificate level.`
-    );
-    sourceUrls.push({ label: 'UDB vs GO vs PoS distinction (udb_process.md)', url: UDB_SOURCE_URL });
-  }
-
-  const supported = routeLines.length > 0 && blockerLines.length === 0;
-  const headline = supported
-    ? `Our sources support a route from ${origin.countryName} to ${destIsMarket ? destMarket?.label : destRegistry?.countryName}.`
-    : 'Not supported by our sources — check with the registry.';
-
-  return { supported, headline, routeLines, blockerLines, sourceUrls };
-}
-
-// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-type TabId = 'directory' | 'routes' | 'production' | 'live';
+type TabId = 'directory' | 'production' | 'live';
+
+// The old in-hub route checker (own bilateral/blocker logic) was removed: routes live on the audited route matrix (#/map).
+const isTabId = (t: string | null): t is TabId => t === 'directory' || t === 'production' || t === 'live';
 
 export function RegistryHub() {
   const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const initialTab = (searchParams.get('tab') as TabId) || 'directory';
+  const tabParam = searchParams.get('tab');
+  const initialTab: TabId = isTabId(tabParam) ? tabParam : 'directory';
   const paramCountry = searchParams.get('country');
   const paramRegistry = searchParams.get('registry');
 
@@ -247,9 +176,6 @@ export function RegistryHub() {
   }, [paramCountry, paramRegistry]);
 
   const [activeTab, setActiveTab] = useState<TabId>(() => {
-    if (paramRegistry && (paramRegistry.toUpperCase() === 'ERGAR' || paramRegistry.toUpperCase() === 'AIB')) {
-      return 'routes';
-    }
     return initialTab;
   });
   const [selectedCountry, setSelectedCountry] = useState<string | null>(resolvedInitialCountry);
@@ -259,7 +185,8 @@ export function RegistryHub() {
   useEffect(() => {
     const c = searchParams.get('country');
     const r = searchParams.get('registry');
-    const t = searchParams.get('tab') as TabId | null;
+    const tRaw = searchParams.get('tab');
+    const t = isTabId(tRaw) ? tRaw : null;
     if (c) {
       const match = getRegistryByCountry(c);
       if (match && match.countryCode !== selectedCountry) {
@@ -267,23 +194,15 @@ export function RegistryHub() {
         setActiveTab('directory');
       }
     } else if (r) {
-      if (r.toUpperCase() === 'ERGAR' || r.toUpperCase() === 'AIB') {
-        setActiveTab('routes');
-      } else {
-        const match = findRegistry(r);
-        if (match && match.countryCode !== selectedCountry) {
-          setSelectedCountry(match.countryCode);
-          setActiveTab('directory');
-        }
+      const match = findRegistry(r);
+      if (match && match.countryCode !== selectedCountry) {
+        setSelectedCountry(match.countryCode);
+        setActiveTab('directory');
       }
     } else if (t && t !== activeTab) {
       setActiveTab(t);
     }
   }, [searchParams]);
-
-  const [routeOrigin, setRouteOrigin] = useState<string>('DK');
-  const [routeDestIsMarket, setRouteDestIsMarket] = useState(false);
-  const [routeDest, setRouteDest] = useState<string>('DE');
 
   const [energinet, setEnerginet] = useState<EnerginetBiogasResult | null>(null);
   const [odre, setOdre] = useState<OdreAnnualProductionData | null>(null);
@@ -323,18 +242,6 @@ export function RegistryHub() {
     []
   );
 
-  const routeResult = useMemo(() => {
-    const origin = getRegistryByCountry(routeOrigin);
-    if (!origin) return null;
-    if (routeDestIsMarket) {
-      const market = COMPLIANCE_MARKETS.find(m => m.id === routeDest);
-      if (!market) return null;
-      return evaluateRoute(origin, routeDest, true, market, undefined);
-    }
-    const destRegistry = getRegistryByCountry(routeDest);
-    if (!destRegistry || destRegistry.countryCode === origin.countryCode) return null;
-    return evaluateRoute(origin, routeDest, false, undefined, destRegistry);
-  }, [routeOrigin, routeDest, routeDestIsMarket]);
 
   const asideEl = (
   <aside className="ds-aside rh-aside">
@@ -471,7 +378,6 @@ export function RegistryHub() {
         {(
           [
             ['directory', 'Registry directory'],
-            ['routes', 'Route checker'],
             ['production', 'Production statistics'],
             ['live', 'Live data'],
           ] as [TabId, string][]
@@ -570,79 +476,6 @@ export function RegistryHub() {
             </Sheet>
           ) : (
             asideEl
-          )}
-        </div>
-      )}
-
-      {activeTab === 'routes' && (
-        <div className="rh-section">
-          <div className="rh-section-title">Route checker</div>
-          <div className="rh-section-sub">
-            Pick an origin registry and a destination (another registry, or a compliance market). This shows only what
-            our sources support — known blockers included — never an invented route or state.
-          </div>
-
-          <div className="rh-route-form">
-            <div className="rh-route-field">
-              <label htmlFor="rh-origin">Origin registry</label>
-              <select id="rh-origin" className="input" value={routeOrigin} onChange={e => setRouteOrigin(e.target.value)}>
-                {sortedDirectory.map(r => <option key={r.countryCode} value={r.countryCode}>{r.countryName} — {r.registryName}</option>)}
-              </select>
-            </div>
-            <div className="rh-route-field">
-              <label htmlFor="rh-dest-type">Destination type</label>
-              <select
-                id="rh-dest-type"
-                className="input"
-                value={routeDestIsMarket ? 'MARKET' : 'REGISTRY'}
-                onChange={e => {
-                  const isMarket = e.target.value === 'MARKET';
-                  setRouteDestIsMarket(isMarket);
-                  setRouteDest(isMarket ? COMPLIANCE_MARKETS[0].id : 'DE');
-                }}
-              >
-                <option value="REGISTRY">Registry</option>
-                <option value="MARKET">Compliance market</option>
-              </select>
-            </div>
-            <div className="rh-route-field">
-              <label htmlFor="rh-dest">Destination</label>
-              <select id="rh-dest" className="input" value={routeDest} onChange={e => setRouteDest(e.target.value)}>
-                {routeDestIsMarket
-                  ? COMPLIANCE_MARKETS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)
-                  : sortedDirectory.filter(r => r.countryCode !== routeOrigin).map(r => <option key={r.countryCode} value={r.countryCode}>{r.countryName} — {r.registryName}</option>)
-                }
-              </select>
-            </div>
-          </div>
-
-          {routeResult && (
-            <div className={`rh-route-result ${routeResult.supported ? 'supported' : ''} ${routeResult.blockerLines.length > 0 ? 'blocked' : ''}`}>
-              <div className="rh-route-headline">{routeResult.headline}</div>
-
-              {routeResult.routeLines.length > 0 && (
-                <ul className="rh-route-list">
-                  {routeResult.routeLines.map((r, i) => <li key={i}>{r}</li>)}
-                </ul>
-              )}
-
-              {routeResult.blockerLines.length > 0 && (
-                <>
-                  <div style={{ fontSize: '13px', fontWeight: 600, margin: '10px 0 6px', color: 'var(--color-status-neg-text)' }}>Known blockers</div>
-                  <ul className="rh-route-list">
-                    {routeResult.blockerLines.map((b, i) => <li key={i}>{b}</li>)}
-                  </ul>
-                </>
-              )}
-
-              <div className="rh-source-list" style={{ marginTop: '10px' }}>
-                {routeResult.sourceUrls.map((s, i) => (
-                  <div key={i} className="rh-source-row" style={{ borderBottom: 'none', paddingBottom: 0 }}>
-                    <a href={s.url} target="_blank" rel="noreferrer">{s.label}</a>
-                  </div>
-                ))}
-              </div>
-            </div>
           )}
         </div>
       )}
