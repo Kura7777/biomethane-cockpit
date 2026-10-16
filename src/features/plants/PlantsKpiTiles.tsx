@@ -19,7 +19,8 @@ export function PlantsKpiTiles({ plants }: { plants: BiomethanePlant[] }) {
     const registerByCountry: Record<string, number> = {};
 
     for (const p of plants) {
-      const gwh = p.annualEnergyGWh || 0;
+      // Flagged duplicate census rows are not summed into supply.
+      const gwh = p.dataQuality?.duplicateOf ? 0 : p.annualEnergyGWh || 0;
       totalGWh += gwh;
       const ci = plantCi(p).ci;
       if (ci < 0) {

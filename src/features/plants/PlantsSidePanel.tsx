@@ -80,7 +80,7 @@ export function PlantsSidePanel({
     return (
       <aside className="ds-aside plants-aside">
         <div className="ds-aside-section">
-          <div className="ds-panel-section-heading">Country totals</div>
+          <div className="ds-panel-section-heading">Country totals (reported by national sources, not the census)</div>
           <div className="plants-country-hint">Click a country to filter the census.</div>
         </div>
         <div className="ds-aside-body">

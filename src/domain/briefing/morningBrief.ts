@@ -373,6 +373,7 @@ export interface CountrySupply {
 export function summariseSupplyByCountry(plants: BiomethanePlant[]): CountrySupply[] {
   const by = new Map<string, CountrySupply>();
   for (const p of plants) {
+    if (p.dataQuality?.duplicateOf) continue; // flagged duplicate census rows are not supply
     const code = p.countryCode || 'XX';
     let row = by.get(code);
     if (!row) {
