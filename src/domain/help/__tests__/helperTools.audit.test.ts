@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { runHelperTool, HELPER_TOOL_RESULT_MAX_CHARS, type HelperToolContext } from '../helperTools';
-import type { MarksState, CostInputs } from '../../netback/types';
+import type { CostInputs } from '../../netback/types';
 import { computeNetback } from '../../netback/engine';
 import { buildArbitrageConsignment, originIsEuGrid } from '../../arbitrage/engine';
 import { PRODUCING_ORIGINS, getRouteTransitTariff } from '../../arbitrage/origins';

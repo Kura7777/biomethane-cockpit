@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, CheckCircle2, ChevronRight, X, ExternalLink, RefreshCw } from 'lucide-react';
+import { Check, CheckCircle2, X, ExternalLink, RefreshCw } from 'lucide-react';
 import { BrokerParseResult } from '../../domain/markets/brokerRunParser';
 import { commitBrokerRunToState } from '../../domain/marks/commitBrokerRun';
 import { useAppState } from '../../store/context';

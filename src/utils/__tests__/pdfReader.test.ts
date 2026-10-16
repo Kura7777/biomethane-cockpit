@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import zlib from 'zlib';
-import { extractPdfText, PdfReadError, PDF_MAX_INPUT_BYTES } from '../pdfReader';
+import { extractPdfText } from '../pdfReader';
 
 describe('extractPdfText', () => {
   it('extracts text from an uncompressed PDF stream', async () => {
