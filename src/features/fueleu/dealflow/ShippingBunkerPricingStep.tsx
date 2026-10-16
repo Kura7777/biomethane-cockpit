@@ -293,7 +293,7 @@ export function ShippingBunkerPricingStep({
             </div>
 
             <p className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed mb-3">
-              Delivered physical molecule with ISCC EU RED-certified proof of sustainability (Directive (EU) 2018/2001, as amended by (EU) 2023/2413; -100 CI manure substrate). Delivers 0.000 tCO₂/t EU ETS zero-rating (subject to RED certification) and eliminates the FuelEU penalty at this compliance balance.
+              Delivered physical molecule with ISCC EU RED-certified proof of sustainability (Directive (EU) 2018/2001, as amended by (EU) 2023/2413; -100 CI manure substrate). Biogenic CO2 is zero-rated under EU ETS (subject to RED certification; CH4 slip and N2O still count from 2026) and the sizing closes the FuelEU deficit at this compliance balance (indicative).
             </p>
 
             <div className="flex items-center gap-3 text-[11px] font-mono text-cyan-700 dark:text-cyan-300">

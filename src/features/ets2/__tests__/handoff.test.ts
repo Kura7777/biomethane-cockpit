@@ -29,7 +29,9 @@ describe('buildEts1SiteTradeBuilderUrl', () => {
     const params = new URL(url, 'http://localhost').searchParams;
     expect(params.get('marketId')).toBe('EU_ETS1');
     expect(params.get('coc')).toBe('MASS_BALANCE');
-    expect(params.get('originCountry')).toBe('DE');
+    // Buyer site country is not plant origin (aud-sd)
+    expect(params.has('originCountry')).toBe(false);
+    expect(params.get('counterparty')).toBe('Test Operator');
   });
 
   it('derives a volume from the site\'s own gas use for a fit site', () => {
@@ -69,9 +71,18 @@ describe('buildEts2CorporateOrderUrl', () => {
     expect(buildEts2CorporateOrderUrl('Acme Gas Ltd', null)).toBe('/corporate?client=Acme+Gas+Ltd');
   });
 
-  it('converts a known TWh volume to MWh', () => {
-    const url = buildEts2CorporateOrderUrl('Acme Gas Ltd', 1.5);
+  it('converts an end user own disclosed TWh volume to MWh', () => {
+    const url = buildEts2CorporateOrderUrl('Acme Gas Ltd', 1.5, { role: 'EXPOSED_END_USER', volumeMethod: 'DISCLOSED' });
     const params = new URL(url, 'http://localhost').searchParams;
     expect(params.get('mwh')).toBe('1500000');
+  });
+
+  it('never hands a supplier whole gas book over as the order volume', () => {
+    const url = buildEts2CorporateOrderUrl('Engie', 83.76, { role: 'REGULATED_SUPPLIER', volumeMethod: 'DISCLOSED' });
+    expect(url).toBe('/corporate?client=Engie');
+  });
+
+  it('requires the role: no mwh without it', () => {
+    expect(buildEts2CorporateOrderUrl('X', 2)).toBe('/corporate?client=X');
   });
 });

@@ -417,7 +417,7 @@ function SupplierPanel(props: {
       <button
         type="button"
         className="ets-btn grow"
-        onClick={() => navigate(buildEts2CorporateOrderUrl(c.name, r.volumeTWh))}
+        onClick={() => navigate(buildEts2CorporateOrderUrl(c.name, r.volumeTWh, { role: c.role, volumeMethod: r.volumeMethod }))}
         data-testid="ets2-corporate-order"
       >
         Corporate order

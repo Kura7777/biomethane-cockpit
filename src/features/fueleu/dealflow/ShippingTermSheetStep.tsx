@@ -286,7 +286,7 @@ Please find below our indicative OTC marine fuel quotation (desk assumptions —
 1. COUNTERPARTY & EXPOSURE PROFILE
 - Counterparty: ${counterparty.parent_name} (#${counterparty.rank})
 - Fleet in EU MRV Scope: ${counterparty.vessels_in_scope} vessels (${counterparty.segment})
-- ${FUELEU_ACTIVE_PERIOD} Estimated Exposure: €${(combinedExposureEur / 1e6).toFixed(2)}M (indicative FuelEU penalty + EU ETS 70% liability)
+- ${FUELEU_ACTIVE_PERIOD} Estimated Exposure: €${(combinedExposureEur / 1e6).toFixed(2)}M (indicative FuelEU penalty + EU ETS liability at the 2026 100% surrender rate)
 - Primary Bunkering Corridor: ${counterparty.primary_bunkering_hubs || '—'}
 
 2. COMMERCIAL PROPOSAL (${pathway === 'PHYSICAL' ? 'Bio-LNG bunkering (Art. 4, Annex I-II)' : 'Article 21 Compliance Pooling'})

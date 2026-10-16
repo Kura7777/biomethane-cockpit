@@ -87,7 +87,7 @@ export function ShippingExposureStep({
       return [
         {
           title: 'Fleet Compliance Position',
-          detail: `${counterparty.parent_name} operates an EU MRV fleet (Source: EU MRV ${MRV_REPORTING_YEAR}, THETIS-MRV public report; fuel split estimated) of ${counterparty.vessels_in_scope} vessels generating a premier +${(counterparty.compliance_balance_2026_tco2e / 1000).toFixed(1)} kt FuelEU surplus in 2025.`,
+          detail: `${counterparty.parent_name} operates an EU MRV fleet (Source: EU MRV ${MRV_REPORTING_YEAR}, THETIS-MRV public report; fuel split estimated) of ${counterparty.vessels_in_scope} vessels generating an indicative +${(counterparty.compliance_balance_2026_tco2e / 1000).toFixed(1)} kt FuelEU surplus against the 2026 limit (estimated from ${MRV_REPORTING_YEAR} activity).`,
         },
         {
           title: 'Article 21 Surplus Monetisation',
@@ -107,7 +107,7 @@ export function ShippingExposureStep({
         },
         {
           title: 'Statutory Exposure Neutralisation',
-          detail: `Combined ${FUELEU_ACTIVE_PERIOD} exposure of ${combinedExposureText} (€${(counterparty.penalty_2026_y1_eur / 1e6).toFixed(1)}M FuelEU penalty + ${etsExposureText} EU ETS liability) is fully wiped out.`,
+          detail: `Combined ${FUELEU_ACTIVE_PERIOD} exposure of ${combinedExposureText} (€${(counterparty.penalty_2026_y1_eur / 1e6).toFixed(1)}M FuelEU penalty + ${etsExposureText} EU ETS liability) is indicatively addressed for the bunkered volume: sizing closes the FuelEU deficit, while EU ETS on any remaining fossil fuel still applies.`,
         },
         {
           title: 'Double Statutory Exemption (RED III + EU ETS)',
@@ -116,7 +116,7 @@ export function ShippingExposureStep({
           // tonnage needed to close that same deficit) produces a blended rate many multiples of any
           // real Bio-LNG market price (see spine-fix-report.md item 5), not a usable per-tonne margin.
           // Show the total saving instead.
-          detail: `Bunkering ${(counterparty.bio_lng_required_neg100_t).toLocaleString()} tonnes of -100 CI manure Bio-LNG delivers 0.000 tCO2/t EU ETS zero-rating and captures +€${(counterparty.client_savings_physical_eur / 1e6).toFixed(1)}M in net client arbitrage.`,
+          detail: `Bunkering ${(counterparty.bio_lng_required_neg100_t).toLocaleString()} tonnes of -100 CI manure Bio-LNG carries no fossil CO2 under EU ETS (biogenic CO2 zero-rated subject to RED certification; CH4 slip and N2O still count from 2026) and indicatively captures +€${(counterparty.client_savings_physical_eur / 1e6).toFixed(1)}M in net client arbitrage.`,
         },
         {
           title: 'Estimated Financial Uplift',
