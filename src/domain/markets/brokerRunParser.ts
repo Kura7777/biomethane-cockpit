@@ -65,6 +65,11 @@ export interface BrokerParseResult {
   parsedQuoteCount: number;
   skippedLines: string[];
   extractedDate: string | null;
+  /**
+   * Set when the numbers were extracted by the desk helper from chat text rather than parsed from a pasted
+   * broker run. The commit labels the rows with this text (never as a broker observation).
+   */
+  chatExtractedLabel?: string;
 }
 
 export type BrokerRunParseResult = BrokerParseResult;
@@ -814,6 +819,28 @@ function convertToMarketUnit(value: number, unit: UnitInfo | null, marketId: str
   }
   const converted = quoted === 'GBP' ? inQuotedCurrency * gbpEurFx : inQuotedCurrency / gbpEurFx;
   return { display: round6(inQuotedCurrency), market: round6(converted) };
+}
+
+/**
+ * Converts one price the way a source QUOTED it (e.g. 295 with "EUR/tCO2e", 0.38 with "EUR_PER_KG_CO2E",
+ * 55 with "p/RTFC") into the market's own unit of account, using the same conversion as the broker-run text
+ * parser. A unit that is missing, has no per-basis, or cannot be mapped to the market gives an error and no
+ * value; a currency change needs the desk GBP/EUR rate. Never guesses.
+ */
+export function convertQuotedPrice(
+  value: number,
+  unitText: string | null | undefined,
+  marketId: string,
+  gbpEurFx?: number | null,
+): { market: number | null; marketUnit: string | null; error?: string } {
+  const marketUnit = marketUnitOf(marketId);
+  const text = (unitText ?? '').trim();
+  if (!text) return { market: null, marketUnit, error: 'quoted unit is required (currency and basis, e.g. EUR/tCO2e)' };
+  const normal = text.replace(/\s+per\s+/gi, '/').replace(/_PER_/gi, '/').replace(/_DEFICIT/i, '').replace(/_/g, '');
+  const info = parseUnitToken(normal);
+  if (!info || !info.per) return { market: null, marketUnit, error: `unit "${text}" not recognised (give currency and basis, e.g. EUR/tCO2e)` };
+  const r = convertToMarketUnit(value, info, marketId, gbpEurFx ?? undefined);
+  return r.error ? { market: null, marketUnit, error: r.error } : { market: r.market, marketUnit };
 }
 
 const BROKER_NAMES: Array<[RegExp, string]> = [

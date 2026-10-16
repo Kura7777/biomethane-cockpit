@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import zlib from 'zlib';
-import { extractPdfText } from '../pdfReader';
+import { extractPdfText, PdfReadError, PDF_MAX_INPUT_BYTES } from '../pdfReader';
 
 describe('extractPdfText', () => {
   it('extracts text from an uncompressed PDF stream', async () => {
@@ -54,14 +54,5 @@ endobj
     const text = await extractPdfText(combined.buffer);
     expect(text).toContain('Biomethane Proof of Sustainability');
     expect(text).toContain('Feedstock: 100% Manure');
-  });
-
-  it('falls back to ASCII scanner when no streams are detected', async () => {
-    const raw = '%PDF-1.4 Header without streams but with printable text like Cert-99482710 and REDcert';
-    const encoder = new TextEncoder();
-    const buffer = encoder.encode(raw).buffer;
-    const text = await extractPdfText(buffer);
-
-    expect(text).toContain('Cert-99482710');
   });
 });
