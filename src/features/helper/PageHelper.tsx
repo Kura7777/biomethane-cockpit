@@ -131,9 +131,7 @@ export function useHelperChat(): Chat {
   }, []);
 
   const model = currentHelperModel();
-  const hasClaudeKey = Boolean(getStoredAnthropicApiKey().trim());
-  const hasGeminiKey = Boolean(getStoredGeminiApiKey().trim());
-  const aiMode = (Boolean(storedKeyFor(model)) || (model.provider === 'anthropic' && !hasClaudeKey && hasGeminiKey)) && online;
+  const aiMode = Boolean(storedKeyFor(model)) && online;
 
   // eslint-disable-next-line react-hooks/exhaustive-deps -- contextVersion is the change signal for the provider registry
   const context = useMemo(() => getPageContext(pathname, search), [pathname, search, contextVersion]);
@@ -152,14 +150,8 @@ export function useHelperChat(): Chat {
     const userTurn: HelperTurn = { id: nextId(), role: 'user', text: question, sent: formatUserTurn(question, live) };
     appendHelperTurn(pageKey, userTurn);
 
-    let model = currentHelperModel();
-    let key = storedKeyFor(model);
-    // If current model has no key, but Gemini key is available, auto-switch to Gemini
-    if (!key && model.provider === 'anthropic' && getStoredGeminiApiKey().trim()) {
-      setHelperProvider('google');
-      model = currentHelperModel();
-      key = storedKeyFor(model);
-    }
+    const model = currentHelperModel();
+    const key = storedKeyFor(model);
     if (!key || !getOnline()) {
       const answer = offlineAnswer(question, guide, live);
       appendHelperTurn(pageKey, {
@@ -743,8 +735,8 @@ function Turn({ turn, onNavigate, onRetry }: { turn: HelperTurn; onNavigate: (to
           </div>
         )}
         {turn.model && (
-          <div className="ph-answered-by" data-testid="helper-answered-by">
-            <span>{turn.model}{turn.costUsd !== undefined && <span data-testid="helper-cost"> · ≈ {formatUsd(turn.costUsd)}</span>}</span>
+          <div className="ph-answered-by">
+            <span data-testid="helper-answered-by">{turn.model}{turn.costUsd !== undefined && <span data-testid="helper-cost"> · ≈ {formatUsd(turn.costUsd)}</span>}</span>
             <CopyButton text={turn.text} />
           </div>
         )}
