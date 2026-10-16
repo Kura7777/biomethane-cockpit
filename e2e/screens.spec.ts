@@ -31,10 +31,10 @@ test.describe('Screen Rendering & Route Health', () => {
     });
   }
 
-  test('an unknown route redirects to the desk landing rather than a blank pane', async ({ page }) => {
+  test('an unknown route shows Page not found rather than a blank pane', async ({ page }) => {
     await page.goto('/#/unknown-desk-route-404');
     await expect(page.getByText('Loading module...')).toHaveCount(0, { timeout: 15_000 });
-    await expect(page).toHaveURL(/#\/$/);
+    await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
     await expectNoErrorBoundary(page);
     await expect(page.locator('#main-content')).toBeVisible();
   });
