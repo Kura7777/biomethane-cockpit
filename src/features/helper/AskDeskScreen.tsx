@@ -530,13 +530,6 @@ export function AskDeskScreen() {
     send: handleSendPrompt,
   };
 
-  const COMMERCIAL_STARTERS = [
-    'How should we structure an EFET term sheet for Danish manure into German THG?',
-    'Where is the cross-border netback highest today for a -80 CI manure asset?',
-    'Stress-test a TTF + €35 floor deal for an agricultural plant in Spain.',
-    'Compare FuelEU Maritime Bio-LNG pooling vs German THG quota.',
-    'Remember: Shell will not accept CI above -50 and requires bilateral UDB transfer within 10 days.',
-  ];
 
   const empty = (
     <div className="ask-empty" data-testid="ask-empty">

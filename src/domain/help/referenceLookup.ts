@@ -14,7 +14,6 @@ const MAX_GLOSSARY = 4;
 const MAX_DOCS = 2;
 const MAX_MARKETS = 3;
 const MAX_WATCH = 3;
-const MAX_REPLY_CHARS = 14000;
 
 const wordsOf = (s: string): string[] => normaliseGlossaryText(s).split(/[^a-z0-9]+/).filter(w => w.length > 2);
 

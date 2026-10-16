@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PricingBookEntry } from '../../domain/markets/brokerRun.seed';
-import { parseTenorSortKey, sortQuotesChronologically } from './marksSort';
-import { Leaf, Award, Globe, ArrowUpRight, Search } from 'lucide-react';
+import { sortQuotesChronologically } from './marksSort';
+import { Leaf, ArrowUpRight, Search } from 'lucide-react';
 
 interface GuaranteesOfOriginViewProps {
   quotes: PricingBookEntry[];
@@ -213,7 +213,6 @@ export function GuaranteesOfOriginView({ quotes, onCellEdit }: GuaranteesOfOrigi
               ) : (
                 sortedGoQuotes.map(q => {
                   const isTradeable = q.isTradeable;
-                  const unit = q.currency === 'GBP' ? '£/MWh' : '€/MWh';
 
                   return (
                     <tr key={q.id}>
