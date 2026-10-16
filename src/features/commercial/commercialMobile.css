@@ -83,7 +83,7 @@
     border-radius: 12px !important;
     border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent) !important;
     background: color-mix(in srgb, var(--color-bg) 60%, transparent) !important;
-    font-size: 14px !important;
+    font-size: 16px !important;
     padding: 10px 14px !important;
     color: var(--color-text) !important;
   }
@@ -124,7 +124,7 @@
     border-radius: 12px !important;
     border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent) !important;
     background: color-mix(in srgb, var(--color-bg) 60%, transparent) !important;
-    font-size: 14px !important;
+    font-size: 16px !important;
     padding: 10px 14px 10px 34px !important;
   }
   .cf-search svg {
@@ -140,7 +140,7 @@
   .cf-sort select {
     flex: 1;
     min-height: 40px;
-    font-size: 14px !important;
+    font-size: 16px !important;
   }
   .cf-filter-controls select,
   .cf-filter-controls input[type='number'] {
@@ -149,7 +149,7 @@
     border-radius: 12px !important;
     border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent) !important;
     background: color-mix(in srgb, var(--color-bg) 60%, transparent) !important;
-    font-size: 14px !important;
+    font-size: 16px !important;
     padding: 10px 14px !important;
   }
   .cf-country-chip {
