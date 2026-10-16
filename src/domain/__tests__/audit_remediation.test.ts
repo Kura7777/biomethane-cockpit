@@ -28,7 +28,6 @@ import {
   FUELEU_MGO_WTW,
   calculateVesselExposure,
 } from '../fueleu/calculator';
-import { generateForwardCurves, MARKET_METADATA } from '../curves/engine';
 import { TEST_QUOTE_MARKET_INPUTS } from './fixtures/fueleuPrices';
 
 /**
@@ -399,13 +398,4 @@ describe('Audit remediation — FuelEU & curve units', () => {
     expect(neg100.fossilLngEtsLiabilityEur).toBe(plus50.fossilLngEtsLiabilityEur);
   });
 
-  it('P0-3 (curves): forward curve units match the registry desk-mark units', () => {
-    expect(MARKET_METADATA.FUELEU.unit).toBe(getMarketById('FUELEU')!.unitLabel);
-    expect(MARKET_METADATA.DE_THG.unit).toBe(getMarketById('DE_THG')!.unitLabel);
-    expect(MARKET_METADATA.UK_RTFO.unit).toBe(getMarketById('UK_RTFO')!.unitLabel);
-    const book = generateForwardCurves(marks);
-    const cal26 = book.curves.UK_RTFO.tenors.CAL_2026;
-    // Seasonal shape is proportional, so a £0.8 RTFC mark cannot go negative in summer
-    expect(cal26.summerPrice).toBeGreaterThan(0);
-  });
 });

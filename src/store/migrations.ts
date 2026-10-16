@@ -49,14 +49,46 @@ interface RawStateShape {
 /**
  * Migration function to upgrade legacy state shapes safely without data loss
  */
+function deepClone<T extends object>(value: T): T {
+  try {
+    return structuredClone(value);
+  } catch {
+    return JSON.parse(JSON.stringify(value)) as T;
+  }
+}
+
+/**
+ * Required top-level fields are repaired on every version, not only on the version that
+ * introduced them: a hand-edited, truncated or foreign backup can lack any of them, and a
+ * missing array would otherwise crash a reducer case (ADD_PRICING_RUN reads pricingBook).
+ */
+function repairRequiredFields(migrated: AppState): void {
+  const defaults = createDefaultState();
+  if (!Array.isArray(migrated.pricingBook)) migrated.pricingBook = defaults.pricingBook;
+  if (!migrated.pricingRunMeta || typeof migrated.pricingRunMeta !== 'object') migrated.pricingRunMeta = defaults.pricingRunMeta;
+  if (!migrated.referenceRowIds || typeof migrated.referenceRowIds !== 'object') migrated.referenceRowIds = {};
+  if (!Array.isArray(migrated.savedAssessments)) migrated.savedAssessments = [];
+  if (!migrated.costs || typeof migrated.costs !== 'object') migrated.costs = defaults.costs;
+  if (!migrated.costsSource || typeof migrated.costsSource !== 'object') migrated.costsSource = defaults.costsSource;
+  if (migrated.selectedMarketId === undefined) migrated.selectedMarketId = null;
+  if (migrated.marks) {
+    if (!migrated.marks.gasIndex) migrated.marks.gasIndex = defaults.marks.gasIndex;
+    if (!migrated.marks.fx) migrated.marks.fx = defaults.marks.fx;
+    if (!migrated.marks.pricingSides) migrated.marks.pricingSides = defaults.marks.pricingSides;
+  }
+}
+
 export function migrateState(raw: unknown): AppState {
   if (!raw || typeof raw !== 'object') {
     return createDefaultState();
   }
 
-  const rawRecord = raw as RawStateShape;
+  // Work on a private deep copy: migrations below assign into nested objects, and the caller's
+  // input (a parsed blob, an imported file, a cross-tab payload) must come back untouched.
+  const input = deepClone(raw as object);
+  const rawRecord = input as RawStateShape;
   const stateVersion = rawRecord.schemaVersion || 1;
-  const migrated: AppState = { ...(raw as AppState) };
+  const migrated: AppState = { ...(input as AppState) };
 
   if (!migrated.marks || !migrated.marks.marks || typeof migrated.marks.marks !== 'object') {
     migrated.marks = createDefaultState().marks;
@@ -430,6 +462,8 @@ export function migrateState(raw: unknown): AppState {
     ];
     migrated.activeConsignmentId = REFERENCE_CONSIGNMENTS.DANISH_MANURE.id;
   }
+
+  repairRequiredFields(migrated);
 
   return migrated as AppState;
 }
