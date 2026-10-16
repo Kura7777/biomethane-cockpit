@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { buildDealUrl } from '../../domain/trade/dealParams';
-import { defaultVolumeMwh, FUELEU_BIO_LNG_DEFAULT_ORIGIN } from '../../domain/trade/dealDefaults';
+import { handoffVolumeMwh } from '../../domain/fueleu/uiHelpers';
+import { FUELEU_BIO_LNG_DEFAULT_ORIGIN } from '../../domain/trade/dealDefaults';
 import { buildOriginationUrl } from '../commercial/originationUrl';
 import {
   FUELEU_VLSFO_WTW,
@@ -121,7 +122,8 @@ export function DualCommercialPathwaySimulator({ initial }: DualCommercialPathwa
       feedstock: FUELEU_BIO_LNG_DEFAULT_ORIGIN.feedstock,
       ci: bioLngCi,
       ciIsEstimated: true,
-      volume: Math.max(1000, Math.round(requiredBioLngMwh || defaultVolumeMwh())),
+      volume: handoffVolumeMwh(requiredBioLngMwh),
+      volumeIsEstimated: true,
       complianceYear: targetYear,
     });
     navigate(url);
@@ -129,7 +131,7 @@ export function DualCommercialPathwaySimulator({ initial }: DualCommercialPathwa
 
   // "Find a plant": this simulator has no counterparty of its own, so only market and volume hand off.
   const handleFindPlant = () => {
-    const volumeMwh = Math.max(1000, Math.round(requiredBioLngMwh || defaultVolumeMwh()));
+    const volumeMwh = handoffVolumeMwh(requiredBioLngMwh);
     navigate(buildOriginationUrl({ market: 'FUELEU', mwh: volumeMwh }));
   };
 

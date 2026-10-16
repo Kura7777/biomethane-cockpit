@@ -188,3 +188,13 @@ export function sortRows<T>(rows: T[], getValue: (row: T) => number | string, di
   });
   return copy;
 }
+
+/**
+ * Volume to hand to the Trade Builder / Origination for a sized bio-LNG need.
+ * The computed MWh is passed as is (no minimum floor, no default deal size); a need of zero or
+ * less (no deficit) gives `undefined` so callers can say "no deficit, nothing to cover".
+ */
+export function handoffVolumeMwh(needMwh: number | null | undefined): number | undefined {
+  if (typeof needMwh !== 'number' || !Number.isFinite(needMwh) || needMwh <= 0) return undefined;
+  return Math.max(1, Math.round(needMwh));
+}

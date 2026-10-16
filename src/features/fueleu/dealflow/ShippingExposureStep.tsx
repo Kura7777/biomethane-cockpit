@@ -1,4 +1,5 @@
 import { FUELEU_ACTIVE_PERIOD } from '../../../domain/fueleu/calculator';
+import { resolveCounterpartyContacts } from '../../../domain/fueleu/groups';
 import { MRV_REPORTING_YEAR } from '../../../domain/fueleu/mrvVintage';
 import React, { useState, useMemo } from 'react';
 import {
@@ -51,7 +52,8 @@ export function ShippingExposureStep({
   const isDualFuel = counterparty.fleetCapability === 'DUAL_FUEL_LNG';
 
   // Only render contacts on file — never construct an email/phone/domain from other fields.
-  const primaryContact = counterparty.contacts?.[0];
+  const resolvedContacts = resolveCounterpartyContacts(counterparty);
+  const primaryContact = resolvedContacts[0];
   const contactEmail = primaryContact?.email;
 
   // Pool and EUA prices come from live marks; with no mark the pitch says so instead of quoting a number.
@@ -500,7 +502,7 @@ export function ShippingExposureStep({
                   color: 'var(--color-accent)',
                 }}
               >
-                {counterparty.contacts?.length ? 'SOURCED CONTACT' : 'NO CONTACT ON FILE'}
+                {resolvedContacts.length ? 'SOURCED CONTACT' : 'NO CONTACT ON FILE'}
               </span>
             </div>
 

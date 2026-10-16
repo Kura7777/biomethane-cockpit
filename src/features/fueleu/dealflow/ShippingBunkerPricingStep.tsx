@@ -167,7 +167,7 @@ export function ShippingBunkerPricingStep({
 
   const clientSavingsEur =
     pathway === 'PHYSICAL'
-      ? marineQuote.totalClientSavingsEur || counterparty.client_savings_physical_eur
+      ? marineQuote.totalClientSavingsEur ?? counterparty.client_savings_physical_eur
       : poolingEcon.savingsEur ?? 0;
 
   const tradingMarginEur =
