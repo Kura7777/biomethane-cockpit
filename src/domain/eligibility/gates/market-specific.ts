@@ -3,6 +3,8 @@ import { Market } from '../../markets/types';
 import { GateResult, GateName } from '../types';
 import { CITATIONS } from '../citations';
 import { NL_GGE_START_YEAR } from '../../regulatory/constants';
+import { getPosRoute } from '../../routes';
+import { getAssumption } from '../../assumptions/registry';
 
 const GATE: GateName = 'MARKET_SPECIFIC';
 const GATE_LABEL = 'Market-Specific Requirements';
@@ -348,20 +350,48 @@ export function evaluateMarketSpecificGate(consignment: Consignment, market: Mar
     }
 
     case 'UK_RTFO': {
-      // RTFCs are issued only for renewable fuel supplied in the UK. Grid biomethane must be
-      // physically injected into the GB grid — continental gas cannot be mass-balanced across
-      // the GB boundary. Physically segregated bio-LNG imports are the one legitimate route in.
+      // Non-GB injection defers to the audited route matrix (src/domain/routes, GB_RTFO):
+      // DfT RTFO Biomethane Guidance (Dec 2024) permits European pipeline biomethane via
+      // interconnected grids with booked/nominated capacity. Physically segregated bio-LNG
+      // imports remain a separate route in.
       const isGbInjected = consignment.injectionCountry === 'GB' || consignment.injectionCountry === 'UK';
-      if (!isGbInjected && consignment.chainOfCustody !== 'SEGREGATION') {
-        return {
-          gate: GATE,
-          gateLabel: GATE_LABEL,
-          verdict: 'HARD_BLOCK',
-          reason: `UK RTFO certificates (RTFCs) are issued only for renewable fuel supplied in the UK. Grid biomethane must be physically injected into the Great Britain gas grid; gas injected in ${consignment.injectionCountry} cannot be claimed via mass balance across the GB boundary.`,
-          remedy: 'Source from a GB-injected anaerobic digestion plant, or deliver physically segregated bio-LNG into the UK.',
-          citations: [CITATIONS.UK_RTFO],
-          confidence: 'HIGH',
-        };
+      if (!isGbInjected) {
+        const route = getPosRoute(consignment.injectionCountry, 'GB', 'GB_RTFO');
+        const conditions = route.summary?.conditions ?? route.schemes[0]?.conditions ?? null;
+        const routeReason = route.summary?.reason ?? route.schemes[0]?.reason ?? 'No audited route data.';
+        if (route.status === 'POSSIBLE') {
+          return {
+            gate: GATE,
+            gateLabel: GATE_LABEL,
+            verdict: 'CONDITIONAL',
+            reason: `UK RTFO: biomethane injected in ${consignment.injectionCountry} can qualify via an interconnected pipeline route under DfT RTFO Biomethane Guidance (Dec 2024). ${routeReason}`,
+            remedy: conditions ?? 'Demonstrate an interconnected pipeline route with capacity booked and nominated at each cross-border point; unsupported volumes only; GOs not accepted.',
+            citations: [CITATIONS.UK_RTFO],
+            confidence: 'MEDIUM',
+          };
+        }
+        if (route.status === 'OPEN') {
+          return {
+            gate: GATE,
+            gateLabel: GATE_LABEL,
+            verdict: 'CONDITIONAL',
+            reason: `UK RTFO route from ${consignment.injectionCountry} is unresolved in the audited route matrix. ${routeReason}`,
+            remedy: conditions ?? 'Resolve the open route question before booking.',
+            citations: [CITATIONS.UK_RTFO],
+            confidence: 'LOW',
+          };
+        }
+        if (consignment.chainOfCustody !== 'SEGREGATION') {
+          return {
+            gate: GATE,
+            gateLabel: GATE_LABEL,
+            verdict: 'HARD_BLOCK',
+            reason: `UK RTFO: no mass-balance route from ${consignment.injectionCountry} to Great Britain. ${routeReason}`,
+            remedy: 'Source from a GB-injected anaerobic digestion plant or an origin with an audited interconnected pipeline route, or deliver physically segregated bio-LNG into the UK.',
+            citations: [CITATIONS.UK_RTFO],
+            confidence: 'HIGH',
+          };
+        }
       }
       if (!isGbInjected) {
         return {
@@ -434,7 +464,7 @@ export function evaluateMarketSpecificGate(consignment: Consignment, market: Mar
         gate: GATE,
         gateLabel: GATE_LABEL,
         verdict: 'PASS',
-        reason: 'FuelEU Maritime: statutory penalty is €2,400/t VLSFO-equivalent under Regulation (EU) 2023/1805. Deficit-closure model allows low-CI Bio-LNG to neutralise fleet penalties. Mandatory requirement: delivery must be physical maritime bunkering verified by a Bunker Delivery Note (BDN) under Art. 16; pure book-and-claim from the gas grid is prohibited (grid gas requires liquefaction tolling ~€18–€25/MWh or an Art. 21 pooling agreement).',
+        reason: 'FuelEU Maritime: statutory penalty is €2,400/t VLSFO-equivalent under Regulation (EU) 2023/1805. Deficit-closure model allows low-CI Bio-LNG to neutralise fleet penalties. Mandatory requirement: delivery must be physical maritime bunkering verified by a Bunker Delivery Note (BDN) under Art. 16; pure book-and-claim from the gas grid is prohibited (grid gas requires liquefaction tolling at the desk assumption of €' + getAssumption('fueleu.liquefactionFeeEurPerMwh') + '/MWh (Pricing desk) or an Art. 21 pooling agreement).',
         remedy: null,
         citations: [CITATIONS.FUELEU_MARITIME],
         confidence: 'HIGH',

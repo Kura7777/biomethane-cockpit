@@ -42,7 +42,7 @@ export interface DealTicketProps {
   volumeMwh: number;
   /** "MWh", or "MWh (GO, HHV)" on a paired GO + PoS market. */
   volumeUnit?: string;
-  annualPnl: number;
+  annualPnl: number | null;
   gates: GateResult[];
   overallVerdict: string;
   udbStatus: UDBStatus;
@@ -135,8 +135,8 @@ export function DealTicket({
 }: DealTicketProps) {
   const [showFullReason, setShowFullReason] = useState(false);
 
-  const netNetback = netback.netNetback ?? 0;
-  const isPos = netNetback >= 0;
+  const netNetback = netback.netNetback; // null stays null: shown as n/a, never styled as a positive 0
+  const isPos = netNetback !== null && netNetback >= 0;
 
   const badge = computeGateBadge(gates, overallVerdict);
   const isHardBlocked = overallVerdict === 'HARD_BLOCK';
@@ -155,7 +155,7 @@ export function DealTicket({
         ? `${(producerPricing.indexLinkedShare * 100).toFixed(1)}% index-linked`
         : 'pricing unset';
     const producerPayableText = netback.producerPayable != null ? netback.producerPayable.toFixed(2) : '—';
-    const volumeText = `${volumeIsEstimated ? '≈ ' : ''}${volumeMwh.toLocaleString()} ${volumeUnit}${volumeIsEstimated ? ' (estimated from site emissions)' : ''}`;
+    const volumeText = `${volumeIsEstimated ? '≈ ' : ''}${volumeMwh.toLocaleString('en-GB')} ${volumeUnit}${volumeIsEstimated ? ' (estimated from site emissions)' : ''}`;
     const line = `${originName} ${feedstockLabel}, CI ${ci} gCO₂e/MJ (${ciLabel}), ${schemeLabel} ${custodyLabel}, ${volumeText} ${vintageLabel}: €${producerPayableText}/MWh (${mode}). Indicative, subject to contract.`;
     try {
       await navigator.clipboard.writeText(line);
@@ -178,8 +178,8 @@ export function DealTicket({
 
       <div className="tt-aside-body ds-aside-body">
         <div className="tt-section">
-          <div className="tt-headline" style={{ color: isPos ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>
-            {isPos ? '+' : '−'}€{Math.abs(netNetback).toFixed(2)}
+          <div className="tt-headline" style={{ color: netNetback === null ? 'var(--color-text-muted)' : isPos ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>
+            {netNetback === null ? 'n/a' : `${isPos ? '+' : '−'}€${Math.abs(netNetback).toFixed(2)}`}
             <span className="unit"> /MWh net netback</span>
           </div>
           {netback.netbackCappedAt != null && (
@@ -188,7 +188,7 @@ export function DealTicket({
             </div>
           )}
           <div className="tt-capped" data-testid="deal-ticket-volume">
-            {volumeIsEstimated ? '≈ ' : ''}{volumeMwh.toLocaleString()} {volumeUnit}{volumeIsEstimated ? ' (estimated from site emissions)' : ''}
+            {volumeIsEstimated ? '≈ ' : ''}{volumeMwh.toLocaleString('en-GB')} {volumeUnit}{volumeIsEstimated ? ' (estimated from site emissions)' : ''}
           </div>
         </div>
 
@@ -227,8 +227,10 @@ export function DealTicket({
                     step={0.1}
                     value={producerPricing.indexLinkedShare != null ? Number((producerPricing.indexLinkedShare * 100).toFixed(1)) : ''}
                     onChange={e => {
+                      // Cleared input is "not set" (null), never 0 %; negatives are rejected.
+                      if (e.target.value === '') { onProducerPricingChange({ indexLinkedShare: null }); return; }
                       const pct = Number(e.target.value);
-                      if (!isNaN(pct)) onProducerPricingChange({ indexLinkedShare: Math.max(0, Math.min(1, pct / 100)) });
+                      if (!isNaN(pct) && pct >= 0) onProducerPricingChange({ indexLinkedShare: Math.max(0, Math.min(1, pct / 100)) });
                     }}
                     aria-label="Producer index-linked share, percent"
                   />
@@ -247,8 +249,10 @@ export function DealTicket({
                     step={0.5}
                     value={producerPricing.fixedPriceEurPerMwh ?? ''}
                     onChange={e => {
+                      // Cleared input is "not set" (null), never €0; negatives are rejected.
+                      if (e.target.value === '') { onProducerPricingChange({ fixedPriceEurPerMwh: null }); return; }
                       const val = Number(e.target.value);
-                      if (!isNaN(val)) onProducerPricingChange({ fixedPriceEurPerMwh: val });
+                      if (!isNaN(val) && val >= 0) onProducerPricingChange({ fixedPriceEurPerMwh: val });
                     }}
                     aria-label="Producer fixed price, euro per MWh"
                   />
@@ -328,7 +332,7 @@ export function DealTicket({
             </div>
             <div className="tt-figure-row">
               <dt>Deal P&amp;L</dt>
-              <dd>{netback.deskMargin !== null ? `€${annualPnl.toLocaleString()}` : '—'}</dd>
+              <dd>{annualPnl !== null ? `€${annualPnl.toLocaleString('en-GB')}` : '—'}</dd>
             </div>
           </dl>
         </div>

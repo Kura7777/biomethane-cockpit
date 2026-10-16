@@ -80,8 +80,10 @@ export function Step4DealSummary({
   const transferSourceText = b.transferSource ? ` [${b.transferSource.badge.label}]` : '';
   const gasSourceText = b.gasIndexSource ? ` [${b.gasIndexSource.badge.label}, ${b.gasIndexSource.asOf ?? 'no date'}]` : '';
 
-  const dealRef = `BIO-${opportunity.originCountry}-${opportunity.targetCountry}-${Date.now().toString().slice(-6)}`;
-  const dateStr = new Date().toISOString().slice(0, 10);
+  // One timestamp per mounted summary (lazy state), so the ref and date do not change on every re-render.
+  const [createdAtMs] = useState(() => Date.now());
+  const dealRef = `BIO-${opportunity.originCountry}-${opportunity.targetCountry}-${createdAtMs.toString().slice(-6)}`;
+  const dateStr = new Date(createdAtMs).toISOString().slice(0, 10);
   const periodLabel = request.delivery.type || 'FRONT_MONTH';
 
   const formattedSummary = `[BIOMETHANE INDICATIVE TERM SHEET]

@@ -1,6 +1,6 @@
 import { getAssumption, feedstockDefaultCi } from '../assumptions/registry';
 import { FEEDSTOCK_REGISTRY } from '../consignment/feedstocks';
-import type { ChainOfCustody } from '../consignment/types';
+import type { CertificationScheme, ChainOfCustody } from '../consignment/types';
 import { MARKETS } from '../markets/registry';
 import { plantFeedstockForCi } from '../plants/compliance';
 import type { BiomethanePlant } from '../plants/types';
@@ -44,9 +44,10 @@ export function feedstockKeyForPlant(plant: {
 export function defaultCi(
   originIso: string,
   feedstockKey: string
-): { ci: number; ciIsEstimated: true } {
+): { ci: number | null; ciIsEstimated: true } {
+  // Unknown feedstock: no desk default exists, so CI is null ("CI required"), never a plausible-looking 0.
   return {
-    ci: feedstockDefaultCi(feedstockKey) ?? 0,
+    ci: feedstockDefaultCi(feedstockKey),
     ciIsEstimated: true,
   };
 }
@@ -63,7 +64,11 @@ export function plantCi(plant: {
   feedstockDetails?: string | null;
   canonicalFeedstockKey?: string | null;
 }): { ci: number; ciIsEstimated: true } {
-  return defaultCi('', feedstockKeyForPlant(plant));
+  const key = feedstockKeyForPlant(plant);
+  const ci = defaultCi('', key).ci;
+  // feedstockKeyForPlant only returns FEEDSTOCK_REGISTRY keys, each with a desk default CI.
+  if (ci === null) throw new Error(`No desk default CI for plant feedstock "${key}"`);
+  return { ci, ciIsEstimated: true };
 }
 
 /**
@@ -225,10 +230,20 @@ export function getMarketForRoute(
  * Emits core deal parameters consistent across all screens.
  * Leaves out contact and legal-entity fields so callers can apply their own verified contacts.
  */
+const KNOWN_SCHEMES: readonly CertificationScheme[] = ['ISCC_EU', 'ISCC_PLUS', 'REDCERT_EU', 'REDCERT2', '2BSVS', 'KZR_INIG'];
+
+/** The plant record's certification scheme when it is one the builder knows; undefined otherwise (builder default then applies). */
+export function plantCertificationScheme(plant: { certificationScheme?: string | null }): CertificationScheme | undefined {
+  const raw = (plant.certificationScheme ?? '').trim().toUpperCase().replace(/[\s-]+/g, '_');
+  return KNOWN_SCHEMES.find(s => s === raw);
+}
+
 export function plantDealParams(plant: BiomethanePlant): Partial<DealParams> {
   const feedstock = feedstockKeyForPlant(plant);
   const ciResult = plantCi(plant);
+  const scheme = plantCertificationScheme(plant);
   return {
+    ...(scheme ? { scheme } : {}),
     marketId: defaultMarketForOrigin(plant.countryCode),
     originCountry: plant.countryCode,
     feedstock,

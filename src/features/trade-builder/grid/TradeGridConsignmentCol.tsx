@@ -61,9 +61,9 @@ interface TradeGridConsignmentColProps {
   setIsPoSUploaderOpen: (open: boolean) => void;
   selectedMarket: Market;
   marketId: string;
-  molVal: number;
-  certVal: number;
-  netNetbackVal: number;
+  molVal: number | null;
+  certVal: number | null;
+  netNetbackVal: number | null;
   custody: CustodyPack | null;
   onCustodyChange: (patch: (c: CustodyPack) => CustodyPack) => void;
   cocGate?: GateResult;

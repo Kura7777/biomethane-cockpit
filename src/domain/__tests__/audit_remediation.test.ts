@@ -71,9 +71,12 @@ const withYear = (c: Consignment, complianceYear: number): Consignment => ({
 });
 
 describe('Audit remediation — statutory gating', () => {
-  it('P0-1: continental grid gas is HARD_BLOCKed from UK RTFO at MARKET_SPECIFIC', () => {
+  it('P0-1 (updated aud-trade): continental pipeline gas into UK RTFO follows the audited route matrix (CONDITIONAL, not blocked); an origin with no corridor is HARD_BLOCKed', () => {
     const fr: Consignment = { ...manure, originCountry: 'FR', injectionCountry: 'FR' };
-    const e = evaluateEligibility(fr, getMarketById('UK_RTFO')!);
+    const gateFr = evaluateEligibility(fr, getMarketById('UK_RTFO')!).gates.find(g => g.gate === 'MARKET_SPECIFIC')!;
+    expect(gateFr.verdict).toBe('CONDITIONAL');
+    const is: Consignment = { ...manure, originCountry: 'IS', injectionCountry: 'IS' };
+    const e = evaluateEligibility(is, getMarketById('UK_RTFO')!);
     expect(e.overallVerdict).toBe('HARD_BLOCK');
     expect(e.blockingGate).toBe('MARKET_SPECIFIC');
   });

@@ -19,8 +19,8 @@ interface TradeSummaryRailProps {
   originName: string;
   ticketMarketLabel: string;
   netback: NetbackResult;
-  netNetbackVal: number;
-  annualPnl: number;
+  netNetbackVal: number | null;
+  annualPnl: number | null;
   headerGateBadge: GateBadge;
   gates: GateResult[];
   overallVerdict: string;
@@ -97,7 +97,7 @@ export function TradeSummaryRail({
   onGoToGate,
   gge,
 }: TradeSummaryRailProps) {
-  const headlineTone = netNetbackVal >= 0 ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)';
+  const headlineTone = netNetbackVal !== null && netNetbackVal >= 0 ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)';
   const pnlTone = (netback.deskMargin ?? 0) >= 0 ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)';
 
   const renderTicket = (closeSheet: boolean) => (
@@ -159,14 +159,14 @@ export function TradeSummaryRail({
           <span className="tb-strip-cell">
             <span className="tb-strip-label">Netback</span>
             <span className="tb-strip-value num" style={{ color: headlineTone }}>
-              {netNetbackVal >= 0 ? `+€${netNetbackVal.toFixed(2)}` : `−€${Math.abs(netNetbackVal).toFixed(2)}`}
+              {netNetbackVal === null ? 'n/a' : netNetbackVal >= 0 ? `+€${netNetbackVal.toFixed(2)}` : `−€${Math.abs(netNetbackVal).toFixed(2)}`}
               <span className="tb-strip-unit">/MWh</span>
             </span>
           </span>
           <span className="tb-strip-cell">
             <span className="tb-strip-label">P&amp;L</span>
             <span className="tb-strip-value num" style={{ color: pnlTone }}>
-              {netback.deskMargin !== null ? `€${annualPnl.toLocaleString()}` : '—'}
+              {annualPnl !== null ? `€${annualPnl.toLocaleString('en-GB')}` : '—'}
             </span>
           </span>
           <span className="tb-strip-cell tb-strip-gate">

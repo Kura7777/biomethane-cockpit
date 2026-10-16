@@ -213,6 +213,7 @@ export function complianceFloors(spec: CorporateOrderSpec, marks: MarksState): C
     annexClassification: spec.excludeCrops ? 'IX_A' : 'IX_B',
     carbonIntensity: spec.maxCi as number,
     commissioningDateRange: 'POST_2021_TO_2025',
+    commissioningDateAssumed: true,
     certificationScheme: 'ISCC_EU',
     chainOfCustody: 'MASS_BALANCE',
     injectionCountry: 'EU',

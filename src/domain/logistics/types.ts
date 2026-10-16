@@ -81,6 +81,9 @@ export interface LogisticsAssessment {
     shrinkageLossPct: number | null;
     shrinkagePct?: number | null;
     shrinkageEurMwh: number | null;
+    /** True when origin and target are different countries with no pipeline path between them. */
+    noPipelineRoute: boolean;
+    noPipelineRouteReason: string | null;
   };
   hubSpread: {
     originHub: string;

@@ -25,6 +25,11 @@ const GATE_VERDICT_EMOJI: Record<string, string> = {
  * Uses box-drawing characters for structure.
  * Every gate cites specific legislation.
  */
+/** A deduction line: "−€8.00" for a positive amount, "+€8.00" for a negative one (never "−€-8.00"). */
+function signedDeduction(v: number): string {
+  return v >= 0 ? `−€${v.toFixed(2)}` : `+€${Math.abs(v).toFixed(2)}`;
+}
+
 export function generateTradeSummary(assessment: TradeAssessment): string {
   const c = assessment.consignment;
   const nb = assessment.netback;
@@ -39,7 +44,7 @@ export function generateTradeSummary(assessment: TradeAssessment): string {
 
   // Trade summary
   lines.push('TRADE SUMMARY');
-  const volText = c.volumeMWh !== null ? `${c.volumeMWh.toLocaleString()} MWh of ` : '';
+  const volText = c.volumeMWh !== null ? `${c.volumeMWh.toLocaleString('en-GB')} MWh of ` : '';
   lines.push(
     `Buy ${volText}${c.feedstockName} biomethane from ${c.originCountryName} ` +
     `(CI: ${c.carbonIntensity} gCO₂e/MJ), certified ${c.certificationScheme.replace(/_/g, ' ')}, ` +
@@ -135,7 +140,7 @@ export function generateTradeSummary(assessment: TradeAssessment): string {
     lines.push(`  Valuation Range:      €${vr.low.toFixed(2)} – €${vr.high.toFixed(2)} /MWh`);
     lines.push(`  Risk Spread:          €${vr.deltaPerMwh.toFixed(2)}/MWh at risk`);
     if (vr.deltaNotional !== null && c.volumeMWh !== null) {
-      lines.push(`  Notional Delta:       €${vr.deltaNotional.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} on ${c.volumeMWh.toLocaleString()} MWh`);
+      lines.push(`  Notional Delta:       €${vr.deltaNotional.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} on ${c.volumeMWh.toLocaleString('en-GB')} MWh`);
     } else {
       lines.push('  Notional Delta:       Volume not specified');
     }
@@ -153,10 +158,10 @@ export function generateTradeSummary(assessment: TradeAssessment): string {
       lines.push(`    Certificate Value:  €${b.certificateValue.valueEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh`);
       lines.push(`    Net Netback:        €${b.netNetback?.toFixed(2) ?? 'N/A'}/MWh`);
       lines.push(`    Gross Value Spread: €${b.grossValueSpread?.toFixed(2) ?? 'N/A'}/MWh`);
-      lines.push(`    Producer Share:     −€${b.producerPayable?.toFixed(2) ?? 'N/A'}/MWh`);
+      lines.push(`    Producer Share:     ${b.producerPayable != null ? signedDeduction(b.producerPayable) : 'N/A'}/MWh`);
       lines.push(`    Realised Desk Margin:€${b.deskMargin?.toFixed(2) ?? 'N/A'}/MWh`);
       if (b.deskPnL !== null) {
-        lines.push(`    Total Desk P&L:     €${b.deskPnL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+        lines.push(`    Total Desk P&L:     €${b.deskPnL.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
       }
     }
     if (c.carbonIntensity < 0 || c.feedstock.includes('manure')) {
@@ -186,14 +191,14 @@ export function generateTradeSummary(assessment: TradeAssessment): string {
   lines.push(`DELIVERED VALUE STACK:     ${nb.netNetback !== null ? `€${nb.netNetback.toFixed(2)}/MWh${incompleteSuffix}` : 'N/A'}`);
   if (assessment.costs.producerPricing?.mode === 'INDEX_LINKED') {
     const sharePct = assessment.costs.producerPricing.indexLinkedShare !== null ? (assessment.costs.producerPricing.indexLinkedShare * 100).toFixed(1) : 'N/A';
-    lines.push(`PRODUCER PAYABLE (${sharePct}%):  ${nb.producerPayable !== null ? `−€${nb.producerPayable.toFixed(2)}/MWh (Index-linked value share)` : 'Not set'}`);
+    lines.push(`PRODUCER PAYABLE (${sharePct}%):  ${nb.producerPayable !== null ? `${signedDeduction(nb.producerPayable)}/MWh (Index-linked value share)` : 'Not set'}`);
   } else {
-    lines.push(`PRODUCER PAYABLE (Fixed):  ${nb.producerPayable !== null ? `−€${nb.producerPayable.toFixed(2)}/MWh (All-in fixed procurement price)` : 'Not set'}`);
+    lines.push(`PRODUCER PAYABLE (Fixed):  ${nb.producerPayable !== null ? `${signedDeduction(nb.producerPayable)}/MWh (All-in fixed procurement price)` : 'Not set'}`);
   }
   lines.push('─────────────────────────────────────────────────────────────');
-  lines.push(`REALISED DESK MARGIN:      ${nb.deskMargin !== null ? `€${nb.deskMargin.toFixed(2)}/MWh (${nb.marginPercent?.toFixed(1)}% margin)` : 'N/A'}`);
+  lines.push(`REALISED DESK MARGIN:      ${nb.deskMargin !== null ? `€${nb.deskMargin.toFixed(2)}/MWh (${nb.marginPercent != null ? `${nb.marginPercent.toFixed(1)}% margin` : 'margin % n/a'})` : 'N/A'}`);
   if (nb.deskPnL !== null) {
-    lines.push(`TOTAL CONTRACT DESK P&L:   €${nb.deskPnL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (on ${c.volumeMWh?.toLocaleString() ?? 0} MWh)`);
+    lines.push(`TOTAL CONTRACT DESK P&L:   €${nb.deskPnL.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (on ${c.volumeMWh != null ? c.volumeMWh.toLocaleString('en-GB') : 'n/a'} MWh)`);
   }
 
   // Key risks

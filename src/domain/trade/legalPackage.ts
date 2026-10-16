@@ -4,6 +4,7 @@ import { Market } from '../markets/types';
 import { CI_COMPARATOR_ROAD_TRANSPORT } from '../markets/constants';
 import { AnnexClassification, ChainOfCustody, UDBStatus } from '../consignment/types';
 import { volumeUnitLabel } from '../consignment/custody';
+import { FR_CPB_CEILING_EUR_MWH } from '../regulatory/constants';
 
 /**
  * Deal documentation generators.
@@ -230,13 +231,13 @@ export function environmentalAttributeLabel(market: Market | undefined, marketId
   return 'Proof of Sustainability (PoS) recorded in the Union Database';
 }
 
-export const fmtMwh = (v: number | null | undefined) => (v != null ? `${v.toLocaleString()} MWh` : TBA);
+export const fmtMwh = (v: number | null | undefined) => (v != null ? `${v.toLocaleString('en-GB')} MWh` : TBA);
 
 /** Deal volume with its basis: "1,000 MWh (GO, HHV)" on a paired GO + PoS market, plain MWh elsewhere. */
 export function fmtDealVolume(assessment: TradeAssessment): string {
   const c = assessment.consignment;
   if (c.volumeMWh == null) return TBA;
-  return `${c.volumeMWh.toLocaleString()} ${volumeUnitLabel(getMarketById(assessment.targetMarketId), c.custody)}`;
+  return `${c.volumeMWh.toLocaleString('en-GB')} ${volumeUnitLabel(getMarketById(assessment.targetMarketId), c.custody)}`;
 }
 export const orTba = (v: string | number | null | undefined) => (v != null && String(v).trim() !== '' ? String(v) : TBA);
 
@@ -466,7 +467,7 @@ export function generateEtrmJsonPayload(assessment: TradeAssessment, options: Le
       contractCiGco2ePerMj: c.carbonIntensity,
       fossilComparatorGco2ePerMj: market?.fossilComparatorGCo2eMj ?? CI_COMPARATOR_ROAD_TRANSPORT, // the market's own comparator, else the RED III transport one
       attributeValueEurMwh: nb.certificateValue?.valueEurPerMWh ?? null,
-      priceCeilingEurMwh: market?.ceilingEurMwh ?? (assessment.targetMarketId === 'FR_CPB' ? 100.0 : null),
+      priceCeilingEurMwh: market?.ceilingEurMwh ?? (assessment.targetMarketId === 'FR_CPB' ? FR_CPB_CEILING_EUR_MWH : null),
       registrySystem: market?.registry ?? null,
     },
     producerPricing: {
@@ -571,7 +572,7 @@ export function generateUdbNominationXmlPayload(assessment: TradeAssessment, opt
      enter the transfer in the Union Database. Bracketed fields must be completed from source documents. -->
 <udbTransferWorksheet xmlns="urn:biomethane-desk:udb-worksheet:v2" generated="${now}">
   <reference>${escapeXml(assessment.id)}</reference>
-  <legalBasis>Directive (EU) 2023/2413 Art. 31a (Union Database gas module not yet live — launch postponed to end-2026 per EBA); Implementing Regulation (EU) 2022/996 Art. 18</legalBasis>
+  <legalBasis>Directive (EU) 2018/2001 Art. 31a (as inserted by Directive (EU) 2023/2413) (Union Database gas module not yet live — launch postponed to end-2026 per EBA); Implementing Regulation (EU) 2022/996 Art. 18</legalBasis>
   <transferringOperator name="${escapeXml(sender)}" udbOperatorId="[FROM UDB ACCOUNT]"/>
   <receivingOperator name="${escapeXml(recipient)}" udbOperatorId="[FROM UDB ACCOUNT]"/>
   <originFacility>

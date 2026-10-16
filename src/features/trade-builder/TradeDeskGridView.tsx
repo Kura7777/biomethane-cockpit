@@ -67,13 +67,13 @@ interface TradeDeskGridViewProps {
   selectedMarket: Market;
   assessment: EligibilityAssessment;
   netback: NetbackResult;
-  netNetbackVal: number;
+  netNetbackVal: number | null;
   currentSide: string;
   waterfallRows: WaterfallRow[];
   waterfallMax: number;
-  grossTotal: number;
+  grossTotal: number | null;
   deskMarginEurMwh: string;
-  annualPnl: number;
+  annualPnl: number | null;
   currentTradeAssessment: TradeAssessment;
   handleSaveDossier: () => void;
   justSavedId: string | null;
@@ -82,8 +82,8 @@ interface TradeDeskGridViewProps {
   handleExportTermSheetPdf: () => void;
   setIsLogisticsOpen: (open: boolean) => void;
   onViewInBlotter: () => void;
-  molVal: number;
-  certVal: number;
+  molVal: number | null;
+  certVal: number | null;
   custody: CustodyPack | null;
   onCustodyChange: (patch: (c: CustodyPack) => CustodyPack) => void;
   cocGate?: GateResult;

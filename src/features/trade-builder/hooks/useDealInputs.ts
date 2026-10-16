@@ -97,21 +97,27 @@ export function useDealInputs(
     }
     setCustody(initialCustody(deal.dealId));
     if (deal.originCountry) setOrigin(deal.originCountry);
-    if (deal.feedstock) setFeedstockKey(deal.feedstock);
+    // A new link replaces the previous deal: anything it does not carry goes back to this deal's
+    // defaults, never the previous deal's feedstock / CI / scheme.
+    setFeedstockKey(deal.feedstock || 'manure');
     if (deal.ci !== null && deal.ci !== undefined) {
       setCi(deal.ci);
       setCiSource('deal');
+    } else {
+      const defaultForFeedstock = feedstockDefaultCi(deal.feedstock || 'manure');
+      if (defaultForFeedstock !== null) setCi(defaultForFeedstock);
+      setCiSource('estimate');
     }
     if (deal.volume) {
       setVolumeMwh(deal.volume);
     } else if (deal.plantAnnualGWh || linkedPlant?.annualEnergyGWh) {
       setVolumeMwh(Math.round((deal.plantAnnualGWh || linkedPlant!.annualEnergyGWh!) * 1000));
     }
-    if (deal.scheme) setScheme(deal.scheme as CertificationScheme);
-    if (deal.coc) setChainOfCustody(deal.coc as ChainOfCustody);
-    if (deal.udb) setUdbStatus(deal.udb);
-    if (deal.pos) setPosStatus(deal.pos);
-    if (deal.plantCommittedVolume !== undefined) setPlantCommittedMwh(deal.plantCommittedVolume);
+    setScheme((deal.scheme as CertificationScheme) || 'ISCC_EU');
+    setChainOfCustody((deal.coc as ChainOfCustody) || 'MASS_BALANCE');
+    setUdbStatus(deal.udb || 'PENDING');
+    setPosStatus(deal.pos || 'PENDING');
+    setPlantCommittedMwh(deal.plantCommittedVolume ?? 0);
     if (deal.complianceYear) schedule.setComplianceYear(deal.complianceYear);
     if (deal.productionStartDate) schedule.setProdStartDate(deal.productionStartDate);
     if (deal.productionEndDate) schedule.setProdEndDate(deal.productionEndDate);

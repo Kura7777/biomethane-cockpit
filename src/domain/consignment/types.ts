@@ -32,6 +32,8 @@ export interface Consignment {
   annexClassification: AnnexClassification;
   carbonIntensity: number;  // gCO2e/MJ, can be negative
   commissioningDateRange: 'PRE_OCT_2015' | 'OCT_2015_TO_2020' | 'POST_2021_TO_2025' | 'POST_2026';
+  /** True when commissioningDateRange is the strictest-bar default because the plant's commissioning year is unknown. */
+  commissioningDateAssumed?: boolean;
   certificationScheme: CertificationScheme;
   chainOfCustody: ChainOfCustody;
   injectionCountry: string;  // ISO alpha-2

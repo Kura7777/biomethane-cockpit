@@ -295,6 +295,12 @@ export function calculateLogisticsRoute(
   // Shortest physical route
   const countryPath = findShortestPipelinePath(origin, target);
   const physicalIps = resolveInterconnectionPoints(countryPath, tariffOverrides);
+  // Explicit "no pipeline route" (e.g. IS, LI have no node in PIPELINE_ADJACENCY): never a silent distance 0 / undefined tariff.
+  const noPipelineRoute = origin !== target && countryPath.length === 0;
+  const noPipelineRouteReason: string | null = noPipelineRoute
+    ? `No pipeline route: ${!PIPELINE_ADJACENCY[origin] ? `${originName} has` : !PIPELINE_ADJACENCY[target] ? `${targetName} has` : `${originName} and ${targetName} have`} no connected node in the European gas transmission graph.`
+    : null;
+  if (noPipelineRoute) distanceKm = null;
 
   // Physical Transmission Tariffs & Unverified Legs
   const unverifiedLegs: string[] = [];
@@ -628,6 +634,8 @@ export function calculateLogisticsRoute(
       shrinkageLossPct,
       shrinkagePct: shrinkageLossPct,
       shrinkageEurMwh,
+      noPipelineRoute,
+      noPipelineRouteReason,
     },
     hubSpread: {
       originHub: originHub.hubName,

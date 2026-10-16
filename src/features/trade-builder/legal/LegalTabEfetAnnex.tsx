@@ -38,7 +38,7 @@ export function LegalTabEfetAnnex({
     unitLabel: '€/tCO₂e',
   };
 
-  const volumeLabel = c.volumeMWh != null ? `${c.volumeMWh.toLocaleString()} MWh` : TBA;
+  const volumeLabel = c.volumeMWh != null ? `${c.volumeMWh.toLocaleString('en-GB')} MWh` : TBA;
   const pricingLines = describePricing(assessment, legalOptions.deskRole || 'SELLER');
   const attributeLabel = environmentalAttributeLabel(
     MARKETS.find(m => m.id === assessment.targetMarketId),
