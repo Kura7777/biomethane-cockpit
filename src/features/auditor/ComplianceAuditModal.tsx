@@ -13,12 +13,15 @@ import {
   AuditorChatMessage,
   AuditorModalTab,
   normalizeAuditorTab,
-  normalizeTradeAuditContext
+  normalizeTradeAuditContext,
+  getMissingAuditInputs
 } from '../../domain/auditor/types';
 import { TradeAssessment } from '../../domain/trade/types';
 import { computeNetback } from '../../domain/netback/engine';
 import { Consignment } from '../../domain/consignment/types';
 import { GateName } from '../../domain/eligibility/types';
+import { summariseQuoteProofs } from '../../domain/auditor/verifier';
+import { evaluateEligibility } from '../../domain/eligibility/engine';
 import { showToast } from '../../app/DeskToastContainer';
 import { MARKETS } from '../../domain/markets/registry';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
@@ -71,6 +74,7 @@ export function ComplianceAuditModal({
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [hasApiKey, setHasApiKey] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
   const [auditResult, setAuditResult] = useState<AuditorResponse | null>(null);
   const [qaPrompt, setQaPrompt] = useState('');
   const [copiedType, setCopiedType] = useState<string | null>(null);
@@ -135,14 +139,14 @@ export function ComplianceAuditModal({
   const defaultLiveTrade = React.useMemo(() => {
     const raw = dealContextOverride || liveTradeDeal;
     return normalizeTradeAuditContext(raw, {
-      originCountry: activeConsignment?.originCountry || 'DE',
-      originPlantId: activeConsignment?.id || 'DE-104',
-      plantName: activeConsignment?.name || 'Güstrow Biomethane Facility',
-      annualVolumeMWh: activeConsignment?.volumeMWh || 85000,
-      targetMarketId: state.selectedMarketId || 'DE_THG',
-      feedstockCategory: activeConsignment?.feedstockName || activeConsignment?.feedstock || 'MANURE_SLURRY',
-      carbonIntensity: activeConsignment?.carbonIntensity ?? -80,
-      deliveredValueEurMwh: 84.50,
+      // No invented defaults: anything the deal does not carry stays missing and the auditor says so.
+      originCountry: activeConsignment?.originCountry ?? '',
+      originPlantId: activeConsignment?.id,
+      plantName: activeConsignment?.name,
+      annualVolumeMWh: activeConsignment?.volumeMWh ?? undefined,
+      targetMarketId: state.selectedMarketId ?? '',
+      feedstockCategory: activeConsignment?.feedstockName || activeConsignment?.feedstock || '',
+      carbonIntensity: activeConsignment?.carbonIntensity,
     });
   }, [dealContextOverride, liveTradeDeal, activeConsignment, state.selectedMarketId]);
 
@@ -216,6 +220,8 @@ export function ComplianceAuditModal({
     let isMounted = true;
     setIsLoading(true);
 
+    // Rules engine only: the AI is never called automatically (explicit "Ask AI" button below).
+    setAiBusy(false);
     queryAuditor(
       'Perform an exhaustive, forensic statutory compliance audit on this transaction. Verify eligibility against RED III 65% GHG savings, UDB mass balance, Annex IX feedstock classification, and target market national quotas.',
       activeTrade
@@ -233,6 +239,18 @@ export function ComplianceAuditModal({
       isMounted = false;
     };
   }, [isOpen, dealContextOverride, selectedPresetIndex, activeTrade.originCountry, activeTrade.targetMarketId, activeTrade.carbonIntensity, activeTrade.feedstockCategory]);
+
+  const handleAskAi = async () => {
+    setAiBusy(true);
+    try {
+      const res = await queryAuditor('Comment on the statutory compliance risks of this deal.', activeTrade, { ai: true });
+      setAuditResult(res);
+    } catch (err) {
+      console.error('AI commentary failed', err);
+    } finally {
+      setAiBusy(false);
+    }
+  };
 
   const handleSaveApiKey = () => {
     setStoredApiKey(apiKeyInput);
@@ -282,7 +300,7 @@ export function ComplianceAuditModal({
         content: res.explanation || res.rawText,
         timestamp: new Date().toLocaleTimeString(),
         auditResponse: res,
-        isVerbatimVerified: res.quoteProofs.some(p => p.isVerbatimVerified)
+        quoteSummary: summariseQuoteProofs(res.quoteProofs) ?? undefined
       };
       setChatHistory(prev => [...prev, assistantMsg]);
     } catch (err: any) {
@@ -301,13 +319,15 @@ export function ComplianceAuditModal({
   };
 
   // Convert TradeAuditContext to TradeAssessment for PDF export
-  const buildAssessmentForExport = (): TradeAssessment => {
-    const targetMarketObj = MARKETS.find(m => m.id === activeTrade.targetMarketId) || MARKETS[0];
+  const buildAssessmentForExport = (): TradeAssessment | null => {
+    // Memo is built ONLY from the rules engine (evaluateEligibility), never from LLM text.
+    const targetMarketObj = MARKETS.find(m => m.id === activeTrade.targetMarketId);
+    if (!targetMarketObj || getMissingAuditInputs(activeTrade).length > 0) return null;
     const rawTrade = dealContextOverride || liveTradeDeal;
     const baseConsignment = buildConsignmentFromTradeContext(activeTrade, rawTrade);
     const consignment: Consignment = {
       ...baseConsignment,
-      counterparty: (rawTrade as any)?.counterparty || 'OFFTAKE COUNTERPARTY CORP',
+      counterparty: (rawTrade as any)?.counterparty || undefined,
     };
 
     const calculatedNetback = computeNetback(
@@ -324,32 +344,11 @@ export function ComplianceAuditModal({
       consignment,
       targetMarketId: targetMarketObj.id,
       targetMarketName: targetMarketObj.name,
-      eligibility: {
-        marketId: targetMarketObj.id,
-        marketName: targetMarketObj.name,
-        overallVerdict: auditResult?.verdict === 'APPROVED' ? 'ELIGIBLE' : auditResult?.verdict === 'REJECTED' ? 'HARD_BLOCK' : 'CONDITIONAL',
-        blockingGate: null,
-        summary: auditResult?.headline || 'Compliance Audit Evaluation',
-        gates: (auditResult?.checks || []).map((c, i) => ({
-          gate: c.gateName.startsWith('7.') ? 'REGISTRY_TRANSFER' : STATUTORY_GATE_NAMES[i] || 'MARKET_SPECIFIC',
-          gateLabel: c.gateName,
-          verdict: c.status === 'PASS' ? 'PASS' : c.status === 'FAIL' ? 'HARD_BLOCK' : 'CONDITIONAL',
-          reason: c.details,
-          remedy: null,
-          citations: c.citation ? [{
-            shortName: c.citation,
-            fullReference: c.citation,
-            establishes: 'Statutory basis',
-            verifiedDate: '2026-09-01',
-            sourceUrl: 'https://eur-lex.europa.eu'
-          }] : [],
-          confidence: 'HIGH',
-        }))
-      },
+      eligibility: evaluateEligibility(consignment, targetMarketObj),
       netback: calculatedNetback,
       marks: state.marks,
       costs: state.costs,
-      userNotes: 'Statutory compliance verification memo generated by Compliance Auditor',
+      userNotes: 'Statutory compliance verification memo generated by the desk rules engine (no AI text).',
     };
   };
 
@@ -358,7 +357,13 @@ export function ComplianceAuditModal({
     try {
       const { generateStatutoryAuditMemoPdf } = await import('../../domain/trade/legalPackagePdf');
       const assessment = buildAssessmentForExport();
-      const pdf = generateStatutoryAuditMemoPdf(assessment, {}, auditResult || undefined);
+      if (!assessment) {
+        showToast('Cannot export: deal inputs are missing (see the audit banner)');
+        return;
+      }
+      // Only the deterministic rules-engine result may feed the memo, never AI commentary.
+      const engineResult = auditResult?.sourceEngine === 'DETERMINISTIC_VAULT' ? auditResult : undefined;
+      const pdf = generateStatutoryAuditMemoPdf(assessment, {}, engineResult);
       const filename = `AUDIT-MEMO-${activeTrade.originCountry}-${activeTrade.targetMarketId}-${Date.now().toString().slice(-4)}.pdf`;
       pdf.save(filename);
       showToast(`Audit Memo PDF downloaded: ${filename}`);
@@ -375,7 +380,7 @@ Ref: AUDIT-TR-${activeTrade.originCountry}-${activeTrade.targetMarketId}
 Verdict: ${auditResult.verdict}
 Route: ${activeTrade.originCountry} (${activeTrade.plantName || 'Facility'}) → ${activeTrade.targetMarketId}
 Substrate: ${activeTrade.feedstockCategory} | CI: ${activeTrade.carbonIntensity} gCO₂e/MJ
-Volume: ${(activeTrade.annualVolumeMWh || 10000).toLocaleString()} MWh
+Volume: ${activeTrade.annualVolumeMWh ? activeTrade.annualVolumeMWh.toLocaleString() + ' MWh' : 'missing'}
 
 6-GATE COMPLIANCE BREAKDOWN:
 ${auditResult.checks.map((chk, i) => `${i + 1}. [${chk.status}] ${chk.gateName}: ${chk.details} (${chk.citation || 'Statutory Code'})`).join('\n')}
@@ -468,8 +473,8 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
             <span className="amc-pipe">|</span>
             <span className="amc-chip-text">{activeTrade.feedstockCategory}</span>
             <span className="amc-pipe">|</span>
-            <span className={`amc-ci-value ${activeTrade.carbonIntensity <= 32.9 ? 'amc-ci-pos' : 'amc-ci-neg'}`}>
-              {activeTrade.carbonIntensity} gCO₂e/MJ
+            <span className={`amc-ci-value ${typeof activeTrade.carbonIntensity === 'number' && activeTrade.carbonIntensity <= 32.9 ? 'amc-ci-pos' : 'amc-ci-neg'}`}>
+              {typeof activeTrade.carbonIntensity === 'number' ? `${activeTrade.carbonIntensity} gCO₂e/MJ` : 'CI missing'}
             </span>
             {activeTrade.annualVolumeMWh && (
               <>
@@ -550,7 +555,9 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
                     </span>
                   </div>
                   <div className="amc-verdict-desc">
-                    {auditResult.verdict === 'APPROVED'
+                    {auditResult.verdict === 'INFO'
+                      ? auditResult.explanation
+                      : auditResult.verdict === 'APPROVED'
                       ? 'All statutory gates cleared. Consignment satisfies RED III mass balance, GHG savings, and target market requirements.'
                       : auditResult.verdict === 'REJECTED'
                       ? 'Hard regulatory block. This transaction cannot clear statutory surrender in the target compliance registry.'
@@ -618,10 +625,31 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
                     <div key={idx} className="amc-quote-item">
                       "{p.quote}"
                       <div className="amc-quote-source">
-                        📁 {p.sourceFile} · {p.articleCitation}
+                        {p.isVerbatimVerified ? 'Verbatim' : p.isPartialMatch ? 'Partial match (not verbatim)' : 'Unverified'} · 📁 {p.sourceFile} · {p.articleCitation}
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* AI commentary: explicit action, never the verdict */}
+              {auditResult && auditResult.verdict !== 'INFO' && (
+                <div className="amc-card">
+                  {auditResult.aiCommentary ? (
+                    <>
+                      <div className="amc-card-eyebrow">AI draft, not a legal opinion (the verdict above comes from the rules engine)</div>
+                      {renderMarkdownContent(auditResult.aiCommentary)}
+                      {auditResult.aiQuoteProofs && auditResult.aiQuoteProofs.length > 0 && (
+                        <div className="amc-quote-source">Quote check: {summariseQuoteProofs(auditResult.aiQuoteProofs)}</div>
+                      )}
+                    </>
+                  ) : (
+                    <button type="button" className="amc-btn" disabled={aiBusy || !hasApiKey} onClick={handleAskAi}
+                      title={hasApiKey ? 'Send this deal to Gemini for commentary' : 'Add a Gemini key in the Engine tab'}>
+                      {aiBusy ? 'Asking AI…' : 'Ask AI for commentary'}
+                    </button>
+                  )}
+                  {auditResult.apiError && <div className="amc-quote-source">AI error: {auditResult.apiError}</div>}
                 </div>
               )}
 
@@ -741,9 +769,9 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
                     </div>
                     <div className="amc-chat-content">{msg.content}</div>
 
-                    {msg.isVerbatimVerified && (
+                    {msg.role === 'assistant' && msg.auditResponse?.sourceEngine === 'GEMINI_LLM' && (
                       <div className="amc-chat-verified">
-                        ✓ Verified against Local Statutory Vault
+                        AI draft, not a legal opinion.{msg.quoteSummary ? ` Quote check: ${msg.quoteSummary}.` : ''}
                       </div>
                     )}
                   </div>

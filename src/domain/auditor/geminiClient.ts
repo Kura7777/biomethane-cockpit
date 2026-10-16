@@ -7,7 +7,7 @@ import { evaluateEligibility } from '../eligibility/engine';
 import type { Consignment, AnnexClassification, CertificationScheme, ChainOfCustody, UDBStatus, PoSStatus } from '../consignment/types';
 import { FEEDSTOCK_REGISTRY } from '../consignment/feedstockData';
 import { extractQuoteProofsFromText, verifyQuoteAgainstVault } from './verifier';
-import { TradeAuditContext, AuditorResponse, GateAuditCheck, AuditorVerdict, normalizeTradeAuditContext } from './types';
+import { TradeAuditContext, AuditorResponse, GateAuditCheck, AuditorVerdict, normalizeTradeAuditContext, getMissingAuditInputs } from './types';
 
 // The Gemini key is shared with the desk helper, so it lives with the other saved keys (regcheck/storage.ts).
 export { GEMINI_API_KEY_STORAGE_KEY };
@@ -93,48 +93,59 @@ const CANNED_PROOF_QUOTES = [
   { quote: 'share of renewable energy within the final consumption of energy in the transport sector of at least 29 % by 2030', articleCitation: 'Directive (EU) 2023/2413 Article 25(1)(a)(i)' },
 ];
 
+export interface QueryAuditorOptions {
+  /** When true and a Gemini key is stored, ALSO ask the LLM for commentary on a deal. Never changes the verdict. */
+  ai?: boolean;
+}
+
 export async function queryAuditor(
   prompt: string,
-  tradeContext?: TradeAuditContext
+  tradeContext?: TradeAuditContext,
+  options: QueryAuditorOptions = {}
 ): Promise<AuditorResponse> {
   const apiKey = getStoredApiKey();
+
+  // A deal audit is ALWAYS decided by the deterministic rules engine (evaluateEligibility).
+  // The LLM, when asked, only adds commentary labelled "AI draft, not a legal opinion".
+  if (tradeContext) {
+    const det = runExhaustiveDeterministicAudit(prompt, tradeContext);
+    if (!options.ai || !apiKey || det.verdict === 'INFO') return det;
+    return askGeminiAboutDeal(det, prompt, tradeContext, apiKey);
+  }
 
   // If no API key is configured, run the exhaustive deterministic audit directly
   if (!apiKey) {
     return runExhaustiveDeterministicAudit(prompt, tradeContext);
   }
 
-  const knowledgeContext = getFullKnowledgeContext();
-
-  let userMessage = prompt;
-  if (tradeContext) {
-    const norm = normalizeTradeAuditContext(tradeContext);
-    userMessage = `PROPOSED COMMERCIAL BIOMETHANE TRANSACTION:
-- Origin Country: ${norm.originCountry} (${norm.originPlantId || 'Selected Asset'})
-- Asset Name: ${norm.plantName || 'European Biomethane Facility'}
-- Destination Market: ${norm.targetMarketId} (${norm.targetMarketName || 'Compliance Market'})
-- Primary Feedstock: ${norm.feedstockCategory} (${norm.feedstockMix || 'Audited substrate mix'})
-- Carbon Intensity (CI): ${norm.carbonIntensity} gCO2eq/MJ
-- Traded Volume: ${norm.annualVolumeMWh ? norm.annualVolumeMWh.toLocaleString() + ' MWh/a' : '10,000 MWh'}
-- Delivered Netback Stack: ${norm.deliveredValueEurMwh ? '€' + norm.deliveredValueEurMwh.toFixed(2) + '/MWh' : 'N/A'}
-
-TASK FOR CHIEF REGULATORY OFFICER:
-Perform a deep, forensic statutory compliance audit on this deal.
-Start your answer with exactly one line of the form "VERDICT: APPROVED", "VERDICT: REJECTED" or "VERDICT: CONDITIONAL_PASS".
-Then structure your assessment with:
-1. Executive Statutory Verdict (APPROVED, REJECTED, or CONDITIONAL_PASS)
-2. Exhaustive Gate Compliance Matrix (6 statutory gates, plus the Registry Transfer gate for Guarantee of Origin markets) with Pass/Fail status and exact legal citations
-3. Feedstock Lifecycle & Manure Credit analysis
-4. Cross-Border Gas Grid Logistics & Union Database (UDB) Recording Risk (note: the UDB gas module is not yet live — launch postponed to end-2026 per EBA)
-5. Recommended Desk Contract Schedule & Protective Clauses`;
+  try {
+    const candidateText = await callGemini(apiKey, prompt);
+    return {
+      verdict: parseAuditorVerdict(candidateText),
+      headline: 'Statutory Regulatory Inquiry (AI draft, not a legal opinion)',
+      explanation: candidateText,
+      checks: extractGateChecks(candidateText),
+      quoteProofs: extractQuoteProofsFromText(candidateText),
+      recommendations: extractRecommendations(candidateText),
+      rawText: candidateText,
+      sourceEngine: 'GEMINI_LLM'
+    };
+  } catch (err: any) {
+    const lastError = err.message || String(err);
+    console.warn('Gemini API call failed, falling back to deterministic engine:', lastError);
+    return runExhaustiveDeterministicAudit(prompt, tradeContext, lastError || 'Unknown API connection error');
   }
+}
 
+/** Single Gemini call across the model fallback list. Throws the last error. */
+async function callGemini(apiKey: string, userMessage: string): Promise<string> {
+  const knowledgeContext = getFullKnowledgeContext();
   const payload = {
     contents: [
       {
         role: 'user',
         parts: [
-          { text: CLOSED_DOMAIN_SYSTEM_INSTRUCTION + '\n\n' + knowledgeContext + '\n\n' + userMessage }
+          { text: [CLOSED_DOMAIN_SYSTEM_INSTRUCTION, knowledgeContext, userMessage].join('\n\n') }
         ]
       }
     ],
@@ -145,10 +156,8 @@ Then structure your assessment with:
     }
   };
 
-  const models = GEMINI_AUDITOR_MODELS;
   let lastError: string | null = null;
-
-  for (const model of models) {
+  for (const model of GEMINI_AUDITOR_MODELS) {
     try {
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
       const response = await fetch(endpoint, {
@@ -172,30 +181,47 @@ Then structure your assessment with:
       if (!candidateText) {
         throw new Error('Empty response payload from Gemini model.');
       }
-
-      const quoteProofs = extractQuoteProofsFromText(candidateText);
-
-      const verdict = parseAuditorVerdict(candidateText);
-
-      return {
-        verdict,
-        headline: tradeContext ? `Institutional Audit Verdict: ${verdict} (${tradeContext.originCountry} → ${tradeContext.targetMarketId})` : 'Statutory Regulatory Inquiry',
-        explanation: candidateText,
-        checks: extractGateChecks(candidateText),
-        quoteProofs,
-        recommendations: extractRecommendations(candidateText),
-        rawText: candidateText,
-        sourceEngine: 'GEMINI_LLM'
-      };
-
+      return candidateText;
     } catch (err: any) {
       lastError = err.message || String(err);
     }
   }
+  throw new Error(lastError || 'Unknown API connection error');
+}
 
-  // Fall back to exhaustive deterministic audit with clear notice
-  console.warn('Gemini API call failed, falling back to exhaustive deterministic audit:', lastError);
-  return runExhaustiveDeterministicAudit(prompt, tradeContext, lastError || 'Unknown API connection error');
+/**
+ * Deal commentary from the LLM. The rules-engine result (`det`) is returned unchanged
+ * (verdict, gates, memo source); the AI text is attached as commentary only.
+ */
+async function askGeminiAboutDeal(
+  det: AuditorResponse,
+  _prompt: string,
+  tradeContext: TradeAuditContext,
+  apiKey: string
+): Promise<AuditorResponse> {
+  const norm = normalizeTradeAuditContext(tradeContext);
+  const userMessage = `PROPOSED COMMERCIAL BIOMETHANE TRANSACTION:
+- Origin Country: ${norm.originCountry} (${norm.originPlantId || 'Selected Asset'})
+- Asset Name: ${norm.plantName || 'European Biomethane Facility'}
+- Destination Market: ${norm.targetMarketId} (${norm.targetMarketName || 'Compliance Market'})
+- Primary Feedstock: ${norm.feedstockCategory} (${norm.feedstockMix || 'Audited substrate mix'})
+- Carbon Intensity (CI): ${norm.carbonIntensity} gCO2eq/MJ
+- Traded Volume: ${norm.annualVolumeMWh?.toLocaleString()} MWh/a
+- Delivered Netback Stack: ${norm.deliveredValueEurMwh ? '€' + norm.deliveredValueEurMwh.toFixed(2) + '/MWh' : 'N/A'}
+
+TASK:
+Give commentary on this deal's statutory compliance risks. The desk's rules engine decides the verdict; you only comment.
+Structure: 1. Key risks 2. Feedstock lifecycle & manure credit analysis 3. Cross-border grid logistics & Union Database (UDB) recording risk (note: the UDB gas module is not yet live; launch postponed to end-2026 per EBA) 4. Suggested contract protections.`;
+  try {
+    const text = await callGemini(apiKey, userMessage);
+    return {
+      ...det,
+      aiCommentary: text,
+      aiQuoteProofs: extractQuoteProofsFromText(text),
+    };
+  } catch (err: any) {
+    return { ...det, apiError: err.message || String(err) };
+  }
 }
 
 /**
@@ -270,7 +296,7 @@ function mapFeedstockKey(raw?: string): string {
  * Normalizes a TradeAuditContext into a full Consignment object suitable for evaluateEligibility.
  */
 export function buildConsignmentFromTradeContext(trade: TradeAuditContext, rawTrade?: any): Consignment {
-  const origin = (trade.originCountry || 'DE').toUpperCase();
+  const origin = (trade.originCountry || '').toUpperCase();
   const injectionCountry = (trade.injectionCountry || (rawTrade as any)?.injectionCountry || origin).toUpperCase();
   const isNonEu = injectionCountry === 'GB' || injectionCountry === 'UK' || injectionCountry === 'CH' || injectionCountry === 'NO';
   const injectionIsEU = typeof trade.injectionIsEU === 'boolean'
@@ -307,7 +333,7 @@ export function buildConsignmentFromTradeContext(trade: TradeAuditContext, rawTr
   const posStatus: PoSStatus = (trade.posStatus as PoSStatus)
     ?? (rawTrade as any)?.posStatus
     ?? 'ISSUED';
-  const volumeMWh = trade.annualVolumeMWh ?? trade.volumeMWh ?? 10000;
+  const volumeMWh = (trade.annualVolumeMWh ?? trade.volumeMWh) as number;
 
   return {
     id: trade.originPlantId ? `CONSIGN-${trade.originPlantId}` : `CONSIGN-${origin}-${feedstockKey}`,
@@ -317,7 +343,7 @@ export function buildConsignmentFromTradeContext(trade: TradeAuditContext, rawTr
     feedstock: feedstockKey,
     feedstockName,
     annexClassification,
-    carbonIntensity: trade.carbonIntensity,
+    carbonIntensity: trade.carbonIntensity as number,
     commissioningDateRange: (trade.commissioningDateRange as any) ?? (rawTrade as any)?.commissioningDateRange ?? 'POST_2021_TO_2025',
     certificationScheme: scheme,
     chainOfCustody,
@@ -362,6 +388,21 @@ function runExhaustiveDeterministicAudit(
   }
 
   const trade = normalizeTradeAuditContext(rawTrade);
+  const missing = getMissingAuditInputs(trade);
+  if (missing.length > 0) {
+    const msg = `Inputs missing: ${missing.join(', ')}. The auditor does not assume values; supply them on the deal to run the statutory gates.`;
+    return {
+      verdict: 'INFO',
+      headline: `Audit not run: inputs missing (${missing.join(', ')})`,
+      explanation: msg,
+      checks: [],
+      quoteProofs: [],
+      recommendations: missing.map(m => `Provide ${m}`),
+      rawText: msg,
+      sourceEngine: 'DETERMINISTIC_VAULT',
+      apiError: errorNotice
+    };
+  }
   const targetMarket = getMarketById(trade.targetMarketId);
   if (!targetMarket) {
     return {
@@ -446,11 +487,11 @@ function runExhaustiveDeterministicAudit(
   }
 
   const isApproved = verdict === 'APPROVED';
-  const ghgSavingsPct = Math.round(((CI_COMPARATOR_ROAD_TRANSPORT - trade.carbonIntensity) / CI_COMPARATOR_ROAD_TRANSPORT) * 100);
+  const ghgSavingsPct = Math.round(((CI_COMPARATOR_ROAD_TRANSPORT - (trade.carbonIntensity as number)) / CI_COMPARATOR_ROAD_TRANSPORT) * 100 * 10) / 10;
 
   const explanation = `### Chief Compliance Officer Statutory Audit Report
 **Transaction:** ${trade.originCountry} (${trade.originPlantId || 'Asset'}) → ${trade.targetMarketId}  
-**Feedstock:** ${trade.feedstockCategory} (${trade.carbonIntensity} gCO₂e/MJ) | Volume: ${trade.annualVolumeMWh ? trade.annualVolumeMWh.toLocaleString() + ' MWh' : '10,000 MWh'}
+**Feedstock:** ${trade.feedstockCategory} (${trade.carbonIntensity} gCO₂e/MJ) | Volume: ${(trade.annualVolumeMWh as number).toLocaleString()} MWh
 
 ${errorNotice ? `> ⚠ *API Notice: Gemini API connection returned: ${errorNotice}. Full audit executed via local statutory compliance rules.*` : ''}
 
@@ -505,7 +546,8 @@ ${isApproved
         quote,
         sourceFile: check.matchedDoc?.sourceFile ?? 'Unverified External Source',
         articleCitation,
-        isVerbatimVerified: check.verified
+        isVerbatimVerified: check.verified,
+        isPartialMatch: !check.verified && !!check.partial,
       };
     }),
     recommendations,

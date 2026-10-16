@@ -9,7 +9,7 @@ import { StatutoryQuoteProof } from './types';
 
 import { LEGAL_CITATIONS } from '../citations/registry';
 
-export function verifyQuoteAgainstVault(quote: string): { verified: boolean; matchedDoc?: KnowledgeDocument } {
+export function verifyQuoteAgainstVault(quote: string): { verified: boolean; partial?: boolean; matchedDoc?: KnowledgeDocument } {
   if (!quote || quote.trim().length < 10) {
     return { verified: false };
   }
@@ -49,7 +49,7 @@ export function verifyQuoteAgainstVault(quote: string): { verified: boolean; mat
     }
   }
 
-  // 2. Direct match across all 41 legal citations directly
+  // 2. Direct match across all legal citations directly
   for (const citation of LEGAL_CITATIONS) {
     const excerptsCombined = citation.keyStatutoryExcerpts.join(' ');
     const fullCitationText = `${citation.summary} ${citation.deskRuleSummary} ${citation.penaltiesOrCaps || ''} ${excerptsCombined}`;
@@ -61,7 +61,8 @@ export function verifyQuoteAgainstVault(quote: string): { verified: boolean; mat
     }
   }
 
-  // 3. Contiguous sliding window search for partial/boundary quotes
+  // 3. Partial match only: the first or last 6 words occur in a source. This is NOT verbatim
+  //    verification (a fabricated sentence can share its opening words with real text).
   const words = cleanQuote.split(' ').filter(Boolean);
   if (words.length >= 5) {
     const windowSize = Math.min(words.length, 6);
@@ -71,7 +72,7 @@ export function verifyQuoteAgainstVault(quote: string): { verified: boolean; mat
     for (const doc of KNOWLEDGE_VAULT_DOCS) {
       const normDoc = normalize(doc.content);
       if (normDoc.includes(startSubstring) || normDoc.includes(endSubstring)) {
-        return { verified: true, matchedDoc: doc };
+        return { verified: false, partial: true, matchedDoc: doc };
       }
     }
     for (const citation of LEGAL_CITATIONS) {
@@ -82,7 +83,7 @@ export function verifyQuoteAgainstVault(quote: string): { verified: boolean; mat
         const matchedDoc = KNOWLEDGE_VAULT_DOCS.find(d => d.id === citation.id) ||
                            KNOWLEDGE_VAULT_DOCS.find(d => d.sources.some(s => s.includes(citation.code) || s.includes(citation.officialTitle))) ||
                            KNOWLEDGE_VAULT_DOCS[0];
-        return { verified: true, matchedDoc };
+        return { verified: false, partial: true, matchedDoc };
       }
     }
   }
@@ -103,12 +104,13 @@ export function extractQuoteProofsFromText(text: string): StatutoryQuoteProof[] 
     const cleanQuote = rawQuote.replace(/^["“„«'‘]+|["”»'’]+$/g, '').trim();
     if (cleanQuote.length >= 15 && !seenQuotes.has(cleanQuote)) {
       seenQuotes.add(cleanQuote);
-      const { verified, matchedDoc } = verifyQuoteAgainstVault(cleanQuote);
+      const { verified, partial, matchedDoc } = verifyQuoteAgainstVault(cleanQuote);
       proofs.push({
         quote: cleanQuote,
         sourceFile: matchedDoc?.sourceFile || 'Unverified External Source',
         articleCitation: matchedDoc?.title || 'Unknown Citation',
-        isVerbatimVerified: verified
+        isVerbatimVerified: verified,
+        isPartialMatch: !verified && !!partial,
       });
     }
   }
@@ -133,4 +135,13 @@ export function extractQuoteProofsFromText(text: string): StatutoryQuoteProof[] 
   }
 
   return proofs;
+}
+
+/** Per-answer summary of quote checks. Never says "verified" unless every quote is verbatim. */
+export function summariseQuoteProofs(proofs: StatutoryQuoteProof[]): string | null {
+  if (proofs.length === 0) return null;
+  const verbatim = proofs.filter(p => p.isVerbatimVerified).length;
+  const partial = proofs.filter(p => !p.isVerbatimVerified && p.isPartialMatch).length;
+  const unverified = proofs.length - verbatim - partial;
+  return `${verbatim} of ${proofs.length} quotes verbatim in the local vault, ${partial} partial match, ${unverified} unverified`;
 }
