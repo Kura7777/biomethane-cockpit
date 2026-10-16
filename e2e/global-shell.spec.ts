@@ -66,9 +66,9 @@ test.describe('Global Shell, Theme Toggle & Command Palette', () => {
     const paletteModal = page.getByRole('dialog', { name: /Command palette/i });
     await expect(paletteModal).toBeVisible();
 
-    // Search for "Plant registry"
+    // Search for "Plants"
     const searchInput = paletteModal.getByPlaceholder(/Jump to a screen/i);
-    await searchInput.fill('Plant registry');
+    await searchInput.fill('Plants');
 
     // Press Enter to navigate
     await page.keyboard.press('Enter');
