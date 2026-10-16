@@ -101,12 +101,13 @@ describe('Broker Run Parser & Importer Engine', () => {
   });
 
   describe('Validation & Error Handling', () => {
-    it('flags inverted bid > ask as validation error', () => {
+    it('keeps a crossed bid > ask as quoted and flags it with a warning (audit fix: never swapped, never silently dropped)', () => {
       const raw = 'THG, 380.00, 395.00, 375.00, EUR/tCO2e, 2026-09-05, Broker';
       const result = parseBrokerRunText(raw);
       expect(result.marks.length).toBe(1);
-      expect(result.marks[0].isValid).toBe(false);
-      expect(result.marks[0].validationErrors.some(e => e.includes('Inverted spread'))).toBe(true);
+      expect(result.marks[0].bid).toBe(395);
+      expect(result.marks[0].ask).toBe(375);
+      expect(result.marks[0].validationWarnings.some(e => e.includes('crossed market'))).toBe(true);
     });
 
     it('flags unrecognized market product', () => {
@@ -143,7 +144,8 @@ describe('Broker Run Parser & Importer Engine', () => {
     });
 
     it('parses colon-separated product and mid within pipe-delimited lines', () => {
-      const raw = 'THG: 385.00 | EUR/MWh | 2026-09-05 | Broker';
+      // (audit fix: this used to say EUR/MWh on the EUR/t THG market and pass; a EUR/MWh price on a EUR/t market is now rejected)
+      const raw = 'THG: 385.00 | EUR/tCO2e | 2026-09-05 | Broker';
       const result = parseBrokerRunText(raw);
       expect(result.marks.length).toBe(1);
       expect(result.marks[0].isValid).toBe(true);
