@@ -13,15 +13,15 @@ import { GgeValueLine } from '../GgeValueLine';
 
 interface TradeGridNetbackColProps {
   netback: NetbackResult;
-  netNetbackVal: number;
+  netNetbackVal: number | null;
   currentSide: string;
   selectedMarket: Market;
   waterfallRows: WaterfallRow[];
   waterfallMax: number;
   volumeMwh: number;
-  grossTotal: number;
+  grossTotal: number | null;
   deskMarginEurMwh: string;
-  annualPnl: number;
+  annualPnl: number | null;
   origin: string;
   currentTradeAssessment: TradeAssessment;
   handleSaveDossier: () => void;
@@ -36,8 +36,8 @@ interface TradeGridNetbackColProps {
   marketId: string;
   feedstockKey: string;
   ci: number;
-  molVal: number;
-  certVal: number;
+  molVal: number | null;
+  certVal: number | null;
   gge?: GgeBreakdown | null;
 }
 
@@ -116,7 +116,7 @@ export function TradeGridNetbackCol({
             margin: '6px 0 4px',
           }}
         >
-          {netNetbackVal >= 0 ? `+€${netNetbackVal.toFixed(2)}` : `−€${Math.abs(netNetbackVal).toFixed(2)}`}
+          {netNetbackVal === null ? 'n/a' : netNetbackVal >= 0 ? `+€${netNetbackVal.toFixed(2)}` : `−€${Math.abs(netNetbackVal).toFixed(2)}`}
         </div>
         <div style={{ fontSize: '12px' }} className="mut">
           per MWh · {currentSide} · {selectedMarket.unitLabel} unit of account
@@ -204,11 +204,11 @@ export function TradeGridNetbackCol({
       >
         <div style={{ backgroundColor: 'var(--color-bg)', padding: '12px 18px' }}>
           <div className="eyebrow">Volume</div>
-          <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>{volumeMwh.toLocaleString()} MWh</div>
+          <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>{volumeMwh.toLocaleString('en-GB')} MWh</div>
         </div>
         <div style={{ backgroundColor: 'var(--color-bg)', padding: '12px 18px' }}>
           <div className="eyebrow">Gross value</div>
-          <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>€{grossTotal.toLocaleString()}</div>
+          <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>{grossTotal !== null ? `€${grossTotal.toLocaleString('en-GB')}` : 'n/a'}</div>
         </div>
         <div style={{ backgroundColor: 'var(--color-bg)', padding: '12px 18px' }}>
           <div className="eyebrow">Desk margin</div>
@@ -219,7 +219,7 @@ export function TradeGridNetbackCol({
         <div style={{ backgroundColor: 'var(--color-bg)', padding: '12px 18px' }}>
           <div className="eyebrow">Deal P&amp;L</div>
           <div className="num" style={{ fontSize: '19px', fontWeight: 800, color: (netback.deskMargin ?? 0) < 0 ? 'var(--color-pnl-neg)' : 'var(--color-pnl-pos)' }}>
-            {netback.deskMargin !== null ? `€${annualPnl.toLocaleString()}` : '—'}
+            {annualPnl !== null ? `€${annualPnl.toLocaleString('en-GB')}` : '—'}
           </div>
         </div>
       </div>
@@ -238,7 +238,7 @@ export function TradeGridNetbackCol({
               <span className="num" style={{ fontWeight: 700 }}>
                 {netback.principalRisk.basisDifferentialEurMwh >= 0 ? `+€${netback.principalRisk.basisDifferentialEurMwh.toFixed(2)}` : `−€${Math.abs(netback.principalRisk.basisDifferentialEurMwh).toFixed(2)}`}/MWh 
                 <span style={{ fontSize: '12px', color: 'var(--color-dim)', marginLeft: '4px' }}>
-                  (€{netback.principalRisk.basisRiskNotionalEur.toLocaleString()})
+                  (€{netback.principalRisk.basisRiskNotionalEur.toLocaleString('en-GB')})
                 </span>
               </span>
             </div>
@@ -247,7 +247,7 @@ export function TradeGridNetbackCol({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span className="mut">Delivery Default Replacement Exposure:</span>
               <span className="num" style={{ fontWeight: 700, color: 'var(--color-pnl-neg)' }}>
-                €{netback.principalRisk.replacementCostExposureEur.toLocaleString()} at risk
+                €{netback.principalRisk.replacementCostExposureEur.toLocaleString('en-GB')} at risk
               </span>
             </div>
 
@@ -338,7 +338,7 @@ export function TradeGridNetbackCol({
               targetMarketName: selectedMarket?.name || marketId,
               feedstockCategory: FEEDSTOCKS.find(f => f.key === feedstockKey)?.label || feedstockKey,
               carbonIntensity: ci,
-              deliveredValueEurMwh: netNetbackVal ?? (molVal + certVal),
+              deliveredValueEurMwh: netNetbackVal ?? (molVal !== null && certVal !== null ? molVal + certVal : null),
             };
             window.dispatchEvent(new CustomEvent('open-compliance-auditor', { detail: tradeAuditPayload }));
           }}

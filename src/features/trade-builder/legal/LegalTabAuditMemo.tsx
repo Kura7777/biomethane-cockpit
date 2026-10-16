@@ -23,7 +23,7 @@ export function LegalTabAuditMemo({
   const [subView, setSubView] = useState<'STRUCTURED' | 'PDF'>('STRUCTURED');
 
   const c = assessment.consignment;
-  const volumeLabel = c.volumeMWh != null ? `${c.volumeMWh.toLocaleString()} MWh` : TBA;
+  const volumeLabel = c.volumeMWh != null ? `${c.volumeMWh.toLocaleString('en-GB')} MWh` : TBA;
 
   const handleCopySummary = () => {
     const memoText = `[DESK REGULATORY PRE-SCREEN — internal, not legal advice]

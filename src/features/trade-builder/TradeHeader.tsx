@@ -12,8 +12,8 @@ interface TradeHeaderProps {
   originFlag: string;
   originName: string;
   feedstockLabel: string;
-  netNetbackVal: number;
-  annualPnl: number;
+  netNetbackVal: number | null;
+  annualPnl: number | null;
   deskMarginVal: number | null;
   headerGateBadge: GateBadge;
   blockedBadgeTitle: string;
@@ -132,8 +132,8 @@ export function TradeHeader({
             }}
           >
             <span style={{ color: 'var(--color-muted)' }}>Netback:</span>
-            <strong style={{ color: netNetbackVal >= 0 ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>
-              {netNetbackVal >= 0 ? `+€${netNetbackVal.toFixed(2)}` : `−€${Math.abs(netNetbackVal).toFixed(2)}`}/MWh
+            <strong style={{ color: netNetbackVal !== null && netNetbackVal >= 0 ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>
+              {netNetbackVal === null ? 'n/a' : netNetbackVal >= 0 ? `+€${netNetbackVal.toFixed(2)}` : `−€${Math.abs(netNetbackVal).toFixed(2)}`}/MWh
             </strong>
           </div>
 
@@ -152,7 +152,7 @@ export function TradeHeader({
           >
             <span style={{ color: 'var(--color-muted)' }}>P&amp;L:</span>
             <strong style={{ color: (deskMarginVal ?? 0) >= 0 ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>
-              {deskMarginVal !== null ? `€${annualPnl.toLocaleString()}` : '—'}
+              {annualPnl !== null ? `€${annualPnl.toLocaleString('en-GB')}` : '—'}
             </strong>
           </div>
 

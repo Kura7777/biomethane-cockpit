@@ -262,7 +262,7 @@ export function PoSUploaderModal({ isOpen, onClose, onApply }: PoSUploaderModalP
                 <div className="p-2.5 rounded bg-stone-900 border border-stone-800">
                   <div className="text-stone-400 text-xs">Volume / Batch</div>
                   <div className="tabular-nums font-bold text-stone-200" data-testid="pos-parsed-mwh">
-                    <Stated value={parsed.custody.mwh === null ? null : `${parsed.custody.mwh.toLocaleString()} MWh`} />
+                    <Stated value={parsed.custody.mwh === null ? null : `${parsed.custody.mwh.toLocaleString('en-GB')} MWh`} />
                   </div>
                 </div>
               </div>

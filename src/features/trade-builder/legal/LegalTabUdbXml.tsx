@@ -24,7 +24,7 @@ export function LegalTabUdbXml({
   const [subView, setSubView] = useState<'SUMMARY' | 'RAW_XML'>('SUMMARY');
 
   const c = assessment.consignment;
-  const volumeLabel = c.volumeMWh != null ? `${c.volumeMWh.toLocaleString()} MWh` : TBA;
+  const volumeLabel = c.volumeMWh != null ? `${c.volumeMWh.toLocaleString('en-GB')} MWh` : TBA;
   const dp = c.deliveryPeriod;
   const deliveryPeriodLabel = dp?.startDate && dp?.endDate ? `${dp.startDate} to ${dp.endDate}` : TBA;
   const originLabel = c.originPlantName || c.name || TBA;

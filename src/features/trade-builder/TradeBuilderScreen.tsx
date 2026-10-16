@@ -236,7 +236,7 @@ export function TradeBuilderScreen() {
 
   const stepSummary: Record<DealStep, string> = {
     1: `${currentOriginObj.flag} ${currentOriginObj.name} · ${currentFeedstockObj.label} · ${currentSchemeObj.label} · ${currentCustodyObj.label} · CI ${ci} g/MJ`,
-    2: `${volumeMwh.toLocaleString()} MWh · ${schedule.complianceYear} compliance · ${formatShortDate(schedule.deliveryStartDate)} – ${formatShortDate(schedule.deliveryEndDate)} · ${schedule.deliveryProfile.replace(/_/g, ' ').toLowerCase()}`,
+    2: `${volumeMwh.toLocaleString('en-GB')} MWh · ${schedule.complianceYear} compliance · ${formatShortDate(schedule.deliveryStartDate)} – ${formatShortDate(schedule.deliveryEndDate)} · ${schedule.deliveryProfile.replace(/_/g, ' ').toLowerCase()}`,
     3: `${selectedMarket.name} · ${
       assessment.overallVerdict === 'ELIGIBLE'
         ? `${assessment.gates.length}/${assessment.gates.length} gates pass`
@@ -244,7 +244,7 @@ export function TradeBuilderScreen() {
           ? 'blocked'
           : `${assessment.overallVerdict === 'CONDITIONAL' ? 'conditional' : assessment.overallVerdict === 'UNRESOLVED' ? 'unresolved' : 'unknown'} · ${assessment.gates.filter(g => g.verdict === 'PASS').length}/${assessment.gates.length} gates pass`
     }`,
-    4: `Net netback ${netNetbackVal >= 0 ? '+' : '−'}€${Math.abs(netNetbackVal).toFixed(2)}/MWh · P&L ${netback.deskMargin !== null ? `€${annualPnl.toLocaleString()}` : '—'}`,
+    4: `Net netback ${netNetbackVal === null ? 'n/a' : `${netNetbackVal >= 0 ? '+' : '−'}€${Math.abs(netNetbackVal).toFixed(2)}/MWh`} · P&L ${annualPnl !== null ? `€${annualPnl.toLocaleString('en-GB')}` : '—'}`,
     5: '',
   };
 

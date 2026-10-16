@@ -226,7 +226,7 @@ export function TradeConsignmentStep({
               </span>
               {deal.marketId === 'FUELEU' && (
                 <p className="tb-hint tb-num">
-                  {volumeMwh.toLocaleString()} MWh physical biomethane requirement · -100 gCO₂e/MJ Manure · 100% RED III Compliant. Sourcing pipeline biomethane on the European gas grid via RED III Mass Balance to feed cryogenic Bio-LNG liquefaction at European bunkering terminals.
+                  {volumeMwh.toLocaleString('en-GB')} MWh physical biomethane requirement · -100 gCO₂e/MJ Manure · 100% RED III Compliant. Sourcing pipeline biomethane on the European gas grid via RED III Mass Balance to feed cryogenic Bio-LNG liquefaction at European bunkering terminals.
                 </p>
               )}
             </div>
@@ -620,17 +620,17 @@ export function TradeConsignmentStep({
               </div>
               {goVolumeMwh !== null && (
                 <p className="tb-hint" data-testid="volume-from-go">
-                  Set from the GO: the GGE value is per GO MWh, so the deal volume is the GO's {goVolumeMwh.toLocaleString()} {volumeUnit}. Change it in the custody pack.
+                  Set from the GO: the GGE value is per GO MWh, so the deal volume is the GO's {goVolumeMwh.toLocaleString('en-GB')} {volumeUnit}. Change it in the custody pack.
                 </p>
               )}
               <p className="tb-hint tb-num">
-                Delivery Run-rate: ~{monthlyRateMwh.toLocaleString()} MWh/mo · {dailyRateMwh.toLocaleString()} MWh/d
+                Delivery Run-rate: ~{monthlyRateMwh.toLocaleString('en-GB')} MWh/mo · {dailyRateMwh.toLocaleString('en-GB')} MWh/d
               </p>
 
               {plantTotalMWh !== null && (
                 <div className="tb-section">
                   <p className={`tb-hint tb-num ${isOversubscribed ? 'tb-neg' : ''}`}>
-                    Facility Capacity Utilisation: {plantCommittedPct}% ({volumeMwh.toLocaleString()} / {plantTotalMWh.toLocaleString()} MWh)
+                    Facility Capacity Utilisation: {plantCommittedPct}% ({volumeMwh.toLocaleString('en-GB')} / {plantTotalMWh.toLocaleString('en-GB')} MWh)
                   </p>
                   <div className="tb-meter">
                     <div

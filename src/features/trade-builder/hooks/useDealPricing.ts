@@ -1,9 +1,12 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { MARKETS, getMarketById } from '../../../domain/markets/registry';
 import { FEEDSTOCK_REGISTRY } from '../../../domain/consignment/feedstocks';
 import { Consignment, AnnexClassification, UDBStatus } from '../../../domain/consignment/types';
 import { evaluateEligibility } from '../../../domain/eligibility/engine';
-import { computeNetback, selectMarkPrice } from '../../../domain/netback/engine';
+import { commissioningRangeFromYear } from '../../../domain/consignment/commissioning';
+import { isEuMemberState } from '../../../domain/consignment/euMembership';
+import { CI_COMPARATOR_HEAT, CI_COMPARATOR_ROAD_TRANSPORT } from '../../../domain/markets/constants';
+import { computeNetback, selectMarkPrice, isAllInMarket } from '../../../domain/netback/engine';
 import { computeGgeBreakdown } from '../../../domain/netback/gge';
 import { volumeUnitLabel } from '../../../domain/consignment/custody';
 import { resolveCounterparty } from '../../../domain/plants/compliance';
@@ -62,7 +65,7 @@ export function useDealPricing(
     ? Math.min(100, Math.round(((volumeMwh + plantCommittedMwh) / plantTotalMWh) * 100))
     : null;
 
-  const isNonEuOrigin = origin === 'GB' || origin === 'CH' || origin === 'NO';
+  const isNonEuOrigin = !isEuMemberState(origin);
   const effectiveUdbStatus: UDBStatus = isNonEuOrigin ? 'NOT_RECORDED' : udbStatus;
 
   // Seller name: the researched legal entity (e.g. Biolvegas S.L., not the census's "Bioenergía de Ólvega") unless the trader named one.
@@ -74,6 +77,8 @@ export function useDealPricing(
   const consignment: Consignment = useMemo(() => {
     const originObj = ORIGINS.find(o => o.code === origin) || ORIGINS[0];
     const regFeedstock = FEEDSTOCK_REGISTRY[feedstockKey];
+    // Derived from the linked plant's commissioning year; unknown keeps the strictest bar, labelled as assumed.
+    const commissioning = commissioningRangeFromYear(linkedPlant?.commissioningYear);
     // Never relabel an unlisted feedstock as the first list entry (manure) — fall back to the registry name.
     const feedObj = FEEDSTOCKS.find(f => f.key === feedstockKey)
       ?? { key: feedstockKey, label: regFeedstock?.name ?? feedstockKey, defaultCI: regFeedstock?.defaultCI ?? 0, hint: '' };
@@ -90,11 +95,12 @@ export function useDealPricing(
       feedstockName: feedObj.label,
       annexClassification: annexClass,
       carbonIntensity: ci,
-      commissioningDateRange: 'POST_2021_TO_2025',
+      commissioningDateRange: commissioning.range,
+      commissioningDateAssumed: commissioning.assumed,
       certificationScheme: scheme,
       chainOfCustody,
       injectionCountry: origin,
-      injectionIsEU: origin !== 'GB' && origin !== 'CH' && origin !== 'NO',
+      injectionIsEU: isEuMemberState(origin),
       udbStatus: effectiveUdbStatus,
       posStatus,
       volumeMWh: volumeMwh,
@@ -285,17 +291,19 @@ export function useDealPricing(
     });
   };
 
-  // GHG savings % uses the market's own comparator when it sets one (NL GGE: 80), else the sector's:
-  // Heat/Industrial (EU_ETS, DE_GO, NL_GO, FR_GO, VOL_SCOPE1) → 80 gCO₂e/MJ comparator (RED III Art. 29(10) heat)
-  // Transport/Maritime/RTFO → 94 gCO₂e/MJ comparator (RED III Art. 29(10) transport)
+  // GHG saving % is measured against the same comparator the GHG gate uses: the market's own, else the
+  // sector's (heat/power 80, otherwise the 94 road-transport comparator). Guarantee-of-Origin and voluntary
+  // markets carry no GHG threshold, so for them this is an informational saving only (no pass/fail).
   const ghgComparator = selectedMarket.fossilComparatorGCo2eMj
-    ?? (['EU_ETS_INDUSTRIAL', 'DE_GO', 'NL_GO', 'FR_GO', 'VOL_SCOPE1', 'UK_RGGO'].includes(selectedMarket.id) ? 80.0 : 94.0);
+    ?? (selectedMarket.sector === 'HEAT_POWER' ? CI_COMPARATOR_HEAT : CI_COMPARATOR_ROAD_TRANSPORT);
   const ghgSavingPct = Math.round(((ghgComparator - ci) / ghgComparator) * 100);
   const currentSide = state.marks.pricingSides?.certificateSide || 'mid';
 
   // Waterfall rows: Leg 1 value stack to Net Netback, then Producer Payable to Desk Margin
-  const certVal = netback.certificateValue?.valueEurPerMWh ?? 0;
-  const molVal = netback.moleculeValue ?? (state.marks.gasIndex.mid ?? 0);
+  // Missing stays missing: null renders as "n/a", never 0. An all-in physical mark carries its own molecule.
+  const certVal: number | null = netback.certificateValue?.valueEurPerMWh ?? null;
+  const moleculeIncluded = isAllInMarket(selectedMarket.id);
+  const molVal: number | null = moleculeIncluded ? 0 : (netback.moleculeValue ?? state.marks.gasIndex.mid ?? null);
   const transferCost = routeCosts.transferCosts ?? 0;
   const certCost = state.costs.certificationCosts ?? 0;
   const transitCost = routeCosts.logistics ?? 0;
@@ -303,7 +311,8 @@ export function useDealPricing(
     ? `Corridor transit ${origin}→${selectedMarket.country} €${transitCost.toFixed(2)}/MWh`
     : 'generic logistics cost (no corridor tariff)';
   const otherCost = routeCosts.otherCosts ?? 0;
-  const netNetbackVal = netback.netNetback ?? 0;
+  const netNetbackVal: number | null = netback.netNetback;
+  const netNetbackNum = netNetbackVal ?? 0; // chart geometry only; every displayed figure uses netNetbackVal and shows n/a when null
   const producerPayable = netback.producerPayable;
   const deskMarginVal = netback.deskMargin;
 
@@ -321,16 +330,16 @@ export function useDealPricing(
   const isTtfSimulated = gasIndexProvenance?.sourceName === SIMULATED_SOURCE_NAME || gasIndexProvenance?.sourceType === 'ESTIMATE';
 
   const waterfallMax = Math.max(
-    certVal, 
-    molVal, 
-    Math.abs(netNetbackVal), 
+    certVal ?? 0,
+    molVal ?? 0,
+    Math.abs(netNetbackNum), 
     producerPayable ?? 0, 
     Math.abs(deskMarginVal ?? 0), 
     1
   );
   const waterfallRows: WaterfallRow[] = [
-    { label: 'Certificate value', val: `+${certVal.toFixed(2)}`, num: certVal, kind: 'add' },
-    { label: `Molecule value (${vtpLabel})`, val: `+${molVal.toFixed(2)}`, num: molVal, kind: 'add' },
+    { label: 'Certificate value', val: certVal !== null ? `+${certVal.toFixed(2)}` : 'n/a', num: certVal ?? 0, kind: 'add' },
+    { label: `Molecule value (${vtpLabel})`, val: molVal !== null ? `+${molVal.toFixed(2)}` : 'n/a', num: molVal ?? 0, kind: 'add' },
     { label: 'Transfer & registry', val: `−${transferCost.toFixed(2)}`, num: transferCost, kind: 'sub' },
     { label: 'Certification', val: `−${certCost.toFixed(2)}`, num: certCost, kind: 'sub' },
     { label: transitLabel, val: `−${transitCost.toFixed(2)}`, num: transitCost, kind: 'sub' },
@@ -338,8 +347,8 @@ export function useDealPricing(
     // Route-specific costs the engine added (NL GGE: GO export / import fees, TTF spread for structure B), so the waterfall adds up.
     ...(netback.routeCostLines ?? []).map(l => ({ label: l.label, val: `−${l.eurPerMwh.toFixed(2)}`, num: l.eurPerMwh, kind: 'sub' as const })),
     // Realisable cap: the market pays the traded bundle, not the full modelled value.
-    ...(netback.netbackCappedAt != null && netback.theoreticalNetback != null ? [{ label: 'Bundle cap (not captured)', val: `−${(netback.theoreticalNetback - netNetbackVal).toFixed(2)}`, num: netback.theoreticalNetback - netNetbackVal, kind: 'sub' as const }] : []),
-    { label: 'Net netback', val: `${netNetbackVal >= 0 ? '+' : '−'}${Math.abs(netNetbackVal).toFixed(2)}`, num: Math.abs(netNetbackVal), kind: 'net' },
+    ...(netback.netbackCappedAt != null && netback.theoreticalNetback != null ? [{ label: 'Bundle cap (not captured)', val: `−${(netback.theoreticalNetback - netNetbackNum).toFixed(2)}`, num: netback.theoreticalNetback - netNetbackNum, kind: 'sub' as const }] : []),
+    { label: 'Net netback', val: netNetbackVal !== null ? `${netNetbackVal >= 0 ? '+' : '−'}${Math.abs(netNetbackVal).toFixed(2)}` : 'n/a', num: Math.abs(netNetbackNum), kind: 'net' },
     ...(producerPayable !== null ? [
       { label: 'Producer payable', val: `−${producerPayable.toFixed(2)}`, num: producerPayable, kind: 'sub' as const },
       { label: 'Desk margin', val: `${(deskMarginVal ?? 0) >= 0 ? '+' : '−'}${Math.abs(deskMarginVal ?? 0).toFixed(2)}`, num: Math.abs(deskMarginVal ?? 0), kind: 'margin' as const },
@@ -347,13 +356,21 @@ export function useDealPricing(
   ];
 
   // Gross deal value = certificate value + molecule value (both legs)
-  const grossTotal = Math.round((certVal + molVal) * volumeMwh);
-  const deskMarginEurMwh = (netback.deskMargin ?? 0).toFixed(2);
-  const annualPnl = Math.round((netback.deskMargin ?? 0) * volumeMwh);
+  // A partial total must not look complete: null unless both legs are present.
+  const grossTotal: number | null = certVal !== null && molVal !== null ? Math.round((certVal + molVal) * volumeMwh) : null;
+  const deskMarginEurMwh: string = netback.deskMargin != null ? netback.deskMargin.toFixed(2) : 'n/a';
+  const annualPnl: number | null = netback.deskMargin != null ? Math.round(netback.deskMargin * volumeMwh) : null;
+
+  // One creation timestamp per deal: recomputing the assessment must not move tradeDate, the SHA-256 seal or the Draft Date.
+  const [created, setCreated] = useState(() => ({ dealId, at: new Date().toISOString() }));
+  if (created.dealId !== dealId) {
+    setCreated({ dealId, at: new Date().toISOString() });
+  }
+  const dealCreatedAt = created.at;
 
   const currentTradeAssessment: TradeAssessment = useMemo(() => ({
     id: dealId,
-    createdAt: new Date().toISOString(),
+    createdAt: dealCreatedAt,
     consignment,
     targetMarketId: selectedMarket.id,
     targetMarketName: selectedMarket.name,
@@ -362,7 +379,7 @@ export function useDealPricing(
     marks: state.marks,
     costs: routeCosts,
     userNotes: deal.plantName ? `Physical asset sourcing from ${deal.plantName}` : 'Trade Builder Assessment',
-  }), [dealId, deal, selectedMarket, consignment, assessment, netback, state.marks, routeCosts]);
+  }), [dealId, dealCreatedAt, deal, selectedMarket, consignment, assessment, netback, state.marks, routeCosts]);
 
   // Continuously sync active trade builder deal state to global window for the Auditor
   useEffect(() => {
@@ -375,7 +392,7 @@ export function useDealPricing(
       targetMarketName: selectedMarket?.name || marketId,
       feedstockCategory: FEEDSTOCKS.find(f => f.key === feedstockKey)?.label || feedstockKey,
       carbonIntensity: ci,
-      deliveredValueEurMwh: netback.netNetback ?? (molVal + certVal),
+      deliveredValueEurMwh: netback.netNetback ?? (molVal !== null && certVal !== null ? molVal + certVal : null),
       certificationScheme: consignment.certificationScheme,
       chainOfCustody: consignment.chainOfCustody,
       annexClassification: consignment.annexClassification,

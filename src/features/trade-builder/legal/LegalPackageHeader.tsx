@@ -15,10 +15,11 @@ export function LegalPackageHeader({
 }: LegalPackageHeaderProps) {
   const c = assessment.consignment;
   const nb = assessment.netback;
-  const volumeLabel = c.volumeMWh != null ? `${c.volumeMWh.toLocaleString()} MWh` : TBA;
-  const gasPrice = assessment.marks.gasIndex.mid ?? 0;
-  const certVal = nb.certificateValue?.valueEurPerMWh ?? 0;
-  const totalDelivered = gasPrice + certVal;
+  const volumeLabel = c.volumeMWh != null ? `${c.volumeMWh.toLocaleString('en-GB')} MWh` : TBA;
+  // A missing leg stays missing: a partial sum must not read as the complete delivered value.
+  const gasPrice = assessment.marks.gasIndex.mid ?? null;
+  const certVal = nb.certificateValue?.valueEurPerMWh ?? null;
+  const totalDelivered = gasPrice !== null && certVal !== null ? gasPrice + certVal : null;
 
   return (
     <div
@@ -62,7 +63,7 @@ export function LegalPackageHeader({
           </h3>
         </div>
         <div style={{ fontSize: '12px', marginTop: '3px', color: 'var(--color-muted)' }}>
-          Ref: <strong style={{ color: 'var(--color-text)' }}>{assessment.id}</strong> · Destination: <strong style={{ color: 'var(--color-text)' }}>{assessment.targetMarketName}</strong> · Volume: <strong style={{ color: 'var(--color-text)' }}>{volumeLabel}</strong> · Indicative delivered (desk marks): <strong style={{ color: 'var(--color-accent)' }}>€{totalDelivered.toFixed(2)}/MWh</strong>
+          Ref: <strong style={{ color: 'var(--color-text)' }}>{assessment.id}</strong> · Destination: <strong style={{ color: 'var(--color-text)' }}>{assessment.targetMarketName}</strong> · Volume: <strong style={{ color: 'var(--color-text)' }}>{volumeLabel}</strong> · Indicative delivered (desk marks): <strong style={{ color: 'var(--color-accent)' }}>{totalDelivered !== null ? `€${totalDelivered.toFixed(2)}/MWh` : 'n/a (a desk mark is missing)'}</strong>
         </div>
       </div>
 

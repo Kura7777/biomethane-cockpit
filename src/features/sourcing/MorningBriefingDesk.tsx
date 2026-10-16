@@ -15,6 +15,8 @@ import {
   Camera,
 } from 'lucide-react';
 import { useAppState } from '../../store/context';
+import { getAssumption } from '../../domain/assumptions/registry';
+import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import {
   generateMorningBriefing,
   MorningBriefingSummary,
@@ -29,9 +31,11 @@ interface MorningBriefingDeskProps {
 export function MorningBriefingDesk({ onSwitchToSourcing }: MorningBriefingDeskProps) {
   const navigate = useNavigate();
   const { state, dispatch, priorCloseMarks, snapshotPriorClose } = useAppState();
+  const assumptionsVersion = useAssumptionsVersion();
 
   const [stalenessFilter, setStalenessFilter] = useState<'ALL' | 'CRITICAL' | 'WARNING' | 'UNFILLED'>('ALL');
-  const [dealVolume] = useState<number>(120000);
+  // Reference deal size is a desk assumption (Pricing desk → Desk assumptions), not a literal here.
+  const [dealVolume] = useState<number>(() => getAssumption('deal.defaultVolumeMwh'));
   const [snapshotSuccess, setSnapshotSuccess] = useState(false);
 
   // Generate briefing dynamically from current state, benchmarked against priorCloseMarks snapshot if set
@@ -41,11 +45,10 @@ export function MorningBriefingDesk({ onSwitchToSourcing }: MorningBriefingDeskP
       previousMarks: priorCloseMarks,
       costs: state.costs,
       selectedFeedstockKey: 'manure',
-      ciOverride: -100,
       defaultDealVolumeMWh: dealVolume,
       asOfDate: new Date(),
     });
-  }, [state.marks, priorCloseMarks, state.costs, dealVolume]);
+  }, [state.marks, priorCloseMarks, state.costs, dealVolume, assumptionsVersion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleStructureDeal = (opp: OriginationOpportunity) => {
     navigate(opp.structuredDealUrl);

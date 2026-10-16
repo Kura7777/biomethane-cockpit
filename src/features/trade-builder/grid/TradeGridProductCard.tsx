@@ -38,9 +38,9 @@ interface TradeGridProductCardProps {
   setIsPoSUploaderOpen: (open: boolean) => void;
   selectedMarket: Market;
   marketId: string;
-  molVal: number;
-  certVal: number;
-  netNetbackVal: number;
+  molVal: number | null;
+  certVal: number | null;
+  netNetbackVal: number | null;
 }
 
 export const TradeGridProductCard: React.FC<TradeGridProductCardProps> = ({
@@ -321,7 +321,7 @@ export const TradeGridProductCard: React.FC<TradeGridProductCardProps> = ({
             targetMarketName: selectedMarket?.name || marketId,
             feedstockCategory: FEEDSTOCKS.find(f => f.key === feedstockKey)?.label || feedstockKey,
             carbonIntensity: ci,
-            deliveredValueEurMwh: netNetbackVal ?? (molVal + certVal),
+            deliveredValueEurMwh: netNetbackVal ?? (molVal !== null && certVal !== null ? molVal + certVal : null),
           };
           window.dispatchEvent(new CustomEvent('open-compliance-auditor', { detail: tradeAuditPayload }));
         }}

@@ -29,7 +29,7 @@ export function LegalPackageFooter({
 }: LegalPackageFooterProps) {
   const c = assessment.consignment;
   const nb = assessment.netback;
-  const volumeLabel = c.volumeMWh != null ? `${c.volumeMWh.toLocaleString()} MWh` : TBA;
+  const volumeLabel = c.volumeMWh != null ? `${c.volumeMWh.toLocaleString('en-GB')} MWh` : TBA;
   const deskMargin = nb.deskMargin ?? 0;
 
   return (

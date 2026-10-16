@@ -29,7 +29,7 @@ export function TradeGridCapacityCard({
     <div style={{ padding: '14px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderLeft: '4px solid var(--color-accent)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
         <span className="eyebrow" style={{ margin: 0 }}>Contract Traded Volume</span>
-        <span className="num" style={{ fontWeight: 800, fontSize: '15px' }}>{volumeMwh.toLocaleString()} MWh</span>
+        <span className="num" style={{ fontWeight: 800, fontSize: '15px' }}>{volumeMwh.toLocaleString('en-GB')} MWh</span>
       </div>
 
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -64,7 +64,7 @@ export function TradeGridCapacityCard({
               style={{ fontSize: '12px', padding: '2px 6px' }}
               onClick={() => setVolumeMwh(Math.round(plantTotalMWh / 4))}
             >
-              25% ({Math.round(plantTotalMWh / 4).toLocaleString()} MWh)
+              25% ({Math.round(plantTotalMWh / 4).toLocaleString('en-GB')} MWh)
             </button>
             <button
               type="button"
@@ -72,7 +72,7 @@ export function TradeGridCapacityCard({
               style={{ fontSize: '12px', padding: '2px 6px' }}
               onClick={() => setVolumeMwh(Math.round(plantTotalMWh / 2))}
             >
-              50% ({Math.round(plantTotalMWh / 2).toLocaleString()} MWh)
+              50% ({Math.round(plantTotalMWh / 2).toLocaleString('en-GB')} MWh)
             </button>
             <button
               type="button"
@@ -80,7 +80,7 @@ export function TradeGridCapacityCard({
               style={{ fontSize: '12px', padding: '2px 6px' }}
               onClick={() => availablePlantCapacity && setVolumeMwh(availablePlantCapacity)}
             >
-              100% Avail ({availablePlantCapacity?.toLocaleString()} MWh)
+              100% Avail ({availablePlantCapacity?.toLocaleString('en-GB')} MWh)
             </button>
           </>
         )}
@@ -91,7 +91,7 @@ export function TradeGridCapacityCard({
         <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed var(--color-divider)', fontSize: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
             <span className="mut">Facility Nameplate Capacity:</span>
-            <span className="num" style={{ fontWeight: 600 }}>{plantTotalMWh.toLocaleString()} MWh/yr</span>
+            <span className="num" style={{ fontWeight: 600 }}>{plantTotalMWh.toLocaleString('en-GB')} MWh/yr</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
             <span className="mut">Prior Committed / Sold Volume:</span>
@@ -113,7 +113,7 @@ export function TradeGridCapacityCard({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
             <span className="mut">Uncommitted Available Capacity:</span>
             <span className="num" style={{ fontWeight: 700, color: (availablePlantCapacity ?? 0) <= 0 ? 'var(--color-pnl-neg)' : 'var(--color-pnl-pos)' }}>
-              {availablePlantCapacity?.toLocaleString()} MWh
+              {availablePlantCapacity?.toLocaleString('en-GB')} MWh
             </span>
           </div>
 
@@ -128,7 +128,7 @@ export function TradeGridCapacityCard({
                 width: `${Math.min(100, (plantCommittedMwh / plantTotalMWh) * 100)}%`,
                 backgroundColor: 'var(--color-neutral-500)',
               }}
-              title={`Committed to others: ${plantCommittedMwh.toLocaleString()} MWh`}
+              title={`Committed to others: ${plantCommittedMwh.toLocaleString('en-GB')} MWh`}
             />
             <div
               style={{
@@ -139,7 +139,7 @@ export function TradeGridCapacityCard({
                 width: `${Math.min(100 - (plantCommittedMwh / plantTotalMWh) * 100, (volumeMwh / plantTotalMWh) * 100)}%`,
                 backgroundColor: isOversubscribed ? 'var(--color-pnl-neg)' : 'var(--color-accent)',
               }}
-              title={`This trade: ${volumeMwh.toLocaleString()} MWh`}
+              title={`This trade: ${volumeMwh.toLocaleString('en-GB')} MWh`}
             />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginTop: '3px' }} className="dim">
@@ -149,7 +149,7 @@ export function TradeGridCapacityCard({
 
           {isOversubscribed && (
             <div style={{ marginTop: '6px', padding: '6px 8px', backgroundColor: 'var(--color-status-warn-bg)', border: '1px solid var(--color-status-warn-border)', color: 'var(--color-status-warn-ink)', borderRadius: 'var(--radius-control)', fontWeight: 600, fontSize: '12px', lineHeight: 1.3 }}>
-              ⚠️ Oversubscription Warning: Contract volume ({volumeMwh.toLocaleString()} MWh) exceeds available plant capacity ({availablePlantCapacity?.toLocaleString()} MWh) by {(volumeMwh - (availablePlantCapacity ?? 0)).toLocaleString()} MWh. Risk of physical delivery default.
+              ⚠️ Oversubscription Warning: Contract volume ({volumeMwh.toLocaleString('en-GB')} MWh) exceeds available plant capacity ({availablePlantCapacity?.toLocaleString('en-GB')} MWh) by {(volumeMwh - (availablePlantCapacity ?? 0)).toLocaleString('en-GB')} MWh. Risk of physical delivery default.
             </div>
           )}
         </div>

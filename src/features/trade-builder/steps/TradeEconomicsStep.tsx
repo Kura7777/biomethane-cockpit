@@ -19,14 +19,14 @@ interface TradeEconomicsStepProps {
   costs: CostInputs;
   selectedMarket: Market;
   currentSide: string;
-  netNetbackVal: number;
+  netNetbackVal: number | null;
   waterfallRows: WaterfallRow[];
   waterfallMax: number;
   volumeMwh: number;
   volumeUnit?: string;
-  grossTotal: number;
+  grossTotal: number | null;
   deskMarginEurMwh: string;
-  annualPnl: number;
+  annualPnl: number | null;
   origin: string;
   isTtfSimulated?: boolean;
   /** "Corridor transit DK→DE €1.80/MWh" (Origination's getRouteTransitTariff rule), or the
@@ -87,8 +87,8 @@ export function TradeEconomicsStep({
         <span className="tb-form-label">Net netback</span>
         <div className="tb-form-control">
           <div className="tb-row">
-            <span className={`tb-hero tb-num ${netNetbackVal >= 0 ? 'tb-pos' : 'tb-neg'}`}>
-              {signed(netNetbackVal)}{' '}
+            <span className={`tb-hero tb-num ${netNetbackVal === null ? 'tb-muted' : netNetbackVal >= 0 ? 'tb-pos' : 'tb-neg'}`}>
+              {netNetbackVal === null ? 'n/a' : signed(netNetbackVal)}{' '}
               <span className="unit">/ MWh</span>
             </span>
             <span className="chip tb-num">
@@ -121,11 +121,11 @@ export function TradeEconomicsStep({
           <dl className="tb-figures">
             <div>
               <dt>Contract Traded Volume</dt>
-              <dd className="tb-num">{volumeMwh.toLocaleString()} {volumeUnit}</dd>
+              <dd className="tb-num">{volumeMwh.toLocaleString('en-GB')} {volumeUnit}</dd>
             </div>
             <div>
               <dt>Gross Deal Notional</dt>
-              <dd className="tb-num">€{grossTotal.toLocaleString()}</dd>
+              <dd className="tb-num">{grossTotal !== null ? `€${grossTotal.toLocaleString('en-GB')}` : 'n/a'}</dd>
             </div>
             <div>
               <dt>Trader Desk Margin</dt>
@@ -136,7 +136,7 @@ export function TradeEconomicsStep({
             <div>
               <dt>Deal Gross P&amp;L</dt>
               <dd className={`tb-num ${pnlClass}`}>
-                {netback.deskMargin !== null ? `€${annualPnl.toLocaleString()}` : '—'}
+                {annualPnl !== null ? `€${annualPnl.toLocaleString('en-GB')}` : '—'}
               </dd>
             </div>
           </dl>
@@ -171,7 +171,7 @@ export function TradeEconomicsStep({
             {netback.netbackCappedAt != null && netback.theoreticalNetback != null && (
               <div className="tb-kv-row">
                 <span title="The market pays the traded bundle price, not the full modelled quota value">Bundle cap (not captured)</span>
-                <span className="tb-neg">−€{(netback.theoreticalNetback - netNetbackVal).toFixed(2)} / MWh</span>
+                <span className="tb-neg">−€{(netback.theoreticalNetback - (netNetbackVal ?? 0)).toFixed(2)} / MWh</span>
               </div>
             )}
             {netback.producerPayable !== null && (
@@ -228,7 +228,7 @@ export function TradeEconomicsStep({
                 </span>
                 <span className="tb-kv-stack end">
                   <span>{signed(netback.principalRisk.basisDifferentialEurMwh)}/MWh</span>
-                  <span className="tb-kv-sub">€{netback.principalRisk.basisRiskNotionalEur.toLocaleString()} notional</span>
+                  <span className="tb-kv-sub">€{netback.principalRisk.basisRiskNotionalEur.toLocaleString('en-GB')} notional</span>
                 </span>
               </div>
 
@@ -238,7 +238,7 @@ export function TradeEconomicsStep({
                   <span className="tb-kv-strong tb-neg">Default Replacement Risk:</span>
                   <span>Secondary market replacement exposure</span>
                 </span>
-                <span className="tb-neg">€{netback.principalRisk.replacementCostExposureEur.toLocaleString()} at risk</span>
+                <span className="tb-neg">€{netback.principalRisk.replacementCostExposureEur.toLocaleString('en-GB')} at risk</span>
               </div>
             </div>
 

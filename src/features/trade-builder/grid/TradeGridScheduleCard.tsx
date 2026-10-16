@@ -125,7 +125,7 @@ export function TradeGridScheduleCard({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
           <span style={{ fontSize: '12px' }} className="mut">Physical Delivery Profile</span>
           <span className="num" style={{ fontSize: '12px', fontWeight: 600 }}>
-            {deliveryProfile === 'FLAT_MONTHLY' ? `~${monthlyRateMwh.toLocaleString()} MWh/mo` : deliveryProfile === 'FLAT_DAILY' ? `~${dailyRateMwh.toLocaleString()} MWh/day` : '100% Bullet Transfer'}
+            {deliveryProfile === 'FLAT_MONTHLY' ? `~${monthlyRateMwh.toLocaleString('en-GB')} MWh/mo` : deliveryProfile === 'FLAT_DAILY' ? `~${dailyRateMwh.toLocaleString('en-GB')} MWh/day` : '100% Bullet Transfer'}
           </span>
         </div>
         <div style={{ display: 'flex', gap: '4px' }}>

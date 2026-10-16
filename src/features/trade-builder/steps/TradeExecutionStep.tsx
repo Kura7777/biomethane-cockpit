@@ -25,9 +25,9 @@ interface TradeExecutionStepProps {
   origin: string;
   volumeMwh: number;
   volumeUnit?: string;
-  netNetbackVal: number;
+  netNetbackVal: number | null;
   deskMarginEurMwh: string;
-  annualPnl: number;
+  annualPnl: number | null;
   onOpenDocReview: (tab: DocumentTab) => void;
   onOpenLogistics: () => void;
   onSaveDossier: () => void;
@@ -67,12 +67,12 @@ Date: ${new Date().toISOString().split('T')[0]}
 Consignment: ${consignment.name}
 Origin: ${consignment.originCountry} (${consignment.originCountryName})
 Target Market: ${selectedMarket.name} (${selectedMarket.country})
-Volume: ${volumeMwh.toLocaleString()} ${volumeUnit}
+Volume: ${volumeMwh.toLocaleString('en-GB')} ${volumeUnit}
 Feedstock: ${consignment.feedstock}
 Carbon Intensity: ${consignment.carbonIntensity} gCO2e/MJ
-Net Netback: €${netNetbackVal.toFixed(2)} / MWh
-Trader Desk Margin: €${deskMarginEurMwh} / MWh
-Deal Gross P&L: €${annualPnl.toLocaleString()}
+Net Netback: ${netNetbackVal !== null ? `€${netNetbackVal.toFixed(2)} / MWh` : 'n/a'}
+Trader Desk Margin: ${deskMarginEurMwh === 'n/a' ? 'n/a' : `€${deskMarginEurMwh} / MWh`}
+Deal Gross P&L: ${annualPnl !== null ? `€${annualPnl.toLocaleString('en-GB')}` : 'n/a'}
 Delivery Point (VTP): ${getVtpForMarket(selectedMarket.country)}
 Compliance Verdict: ${currentTradeAssessment.eligibility.overallVerdict} (${currentTradeAssessment.eligibility.gates.filter(g => g.verdict === 'PASS').length}/${currentTradeAssessment.eligibility.gates.length} gates pass)
 Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
@@ -130,12 +130,12 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
             <div className="tb-kv-row"><span>Asset / Consignment</span><span>{consignment.name}</span></div>
             <div className="tb-kv-row"><span>Origin Country</span><span>{consignment.originCountry} ({consignment.originCountryName})</span></div>
             <div className="tb-kv-row"><span>Target Market</span><span>{selectedMarket.name} ({selectedMarket.country})</span></div>
-            <div className="tb-kv-row"><span>Contract Volume</span><span>{volumeMwh.toLocaleString()} {volumeUnit}</span></div>
+            <div className="tb-kv-row"><span>Contract Volume</span><span>{volumeMwh.toLocaleString('en-GB')} {volumeUnit}</span></div>
             <div className="tb-kv-row"><span>Certified Feedstock</span><span>{consignment.feedstock} ({consignment.annexClassification})</span></div>
             <div className="tb-kv-row"><span>Carbon Intensity</span><span>{consignment.carbonIntensity} gCO₂e/MJ</span></div>
-            <div className="tb-kv-row"><span>Wholesale Net Netback</span><span className={netNetbackVal >= 0 ? 'tb-pos' : 'tb-neg'}>€{netNetbackVal.toFixed(2)} / MWh</span></div>
-            <div className="tb-kv-row"><span>Trader Desk Margin</span><span className={annualPnl >= 0 ? 'tb-pos' : 'tb-neg'}>€{deskMarginEurMwh} / MWh</span></div>
-            <div className="tb-kv-row"><span>Deal Desk P&amp;L</span><span className={annualPnl >= 0 ? 'tb-pos' : 'tb-neg'}>€{annualPnl.toLocaleString()}</span></div>
+            <div className="tb-kv-row"><span>Wholesale Net Netback</span><span className={netNetbackVal !== null && netNetbackVal >= 0 ? 'tb-pos' : 'tb-neg'}>{netNetbackVal !== null ? `€${netNetbackVal.toFixed(2)} / MWh` : 'n/a'}</span></div>
+            <div className="tb-kv-row"><span>Trader Desk Margin</span><span className={annualPnl !== null && annualPnl >= 0 ? 'tb-pos' : 'tb-neg'}>{deskMarginEurMwh === 'n/a' ? 'n/a' : `€${deskMarginEurMwh} / MWh`}</span></div>
+            <div className="tb-kv-row"><span>Deal Desk P&amp;L</span><span className={annualPnl !== null && annualPnl >= 0 ? 'tb-pos' : 'tb-neg'}>{annualPnl !== null ? `€${annualPnl.toLocaleString('en-GB')}` : 'n/a'}</span></div>
             <div className="tb-kv-row"><span>Physical VTP Delivery</span><span>{getVtpForMarket(selectedMarket.country)}</span></div>
             <div className="tb-kv-row"><span>Governing Standard</span><span>EFET 2026 Biomethane Annex / RED III Art. 30</span></div>
           </div>
