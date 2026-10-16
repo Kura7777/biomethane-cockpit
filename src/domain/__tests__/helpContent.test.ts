@@ -17,7 +17,7 @@ const APP_ROUTES = new Set([...appSource.matchAll(/<Route\s+path="([^"]+)"/g)].m
 
 /** Routes that render a screen (not a <Navigate> redirect). */
 const SCREEN_ROUTES = [...appSource.matchAll(/<Route\s+path="([^"]+)"\s+element=\{<(\w+)/g)]
-  .filter(m => m[2] !== 'Navigate')
+  .filter(m => m[2] !== 'Navigate' && m[1] !== '*') // the catch-all Page not found screen has no guide
   .map(m => m[1]);
 
 const pathOf = (route: string) => route.split('?')[0].split('#')[0];

@@ -138,6 +138,7 @@ function AppContent() {
             <Route path="/citations" element={<CitationsScreen />} />
             {/* /settings only duplicated AI-key entry, which lives on Ask and Regulation check; old links land on Ask. */}
             <Route path="/settings" element={<Navigate to="/ask" replace />} />
+            <Route path="/connectors" element={<Navigate to="/data-sources" replace />} />
             {/* Kept for old bookmarks — the Assumptions screen now lives inside the Pricing desk. */}
             <Route path="/assumptions" element={<Navigate to="/pricing?tab=assumptions" replace />} />
             <Route path="/regulation-check" element={<RegulationCheckScreen />} />

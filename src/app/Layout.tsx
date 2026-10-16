@@ -146,6 +146,11 @@ export function Layout() {
         return;
       }
 
+      // A modal or sheet is open: single-key shortcuts must not navigate away behind it
+      if (document.querySelector('[aria-modal="true"]')) {
+        return;
+      }
+
       // Never hijack keystrokes inside FuelEU Maritime multi-step desk flows
       if (location.pathname.startsWith('/fueleu')) {
         return;

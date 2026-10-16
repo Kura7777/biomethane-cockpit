@@ -10,7 +10,6 @@ interface LogisticsModalProps {
   targetCountry: string;
   isOpen: boolean;
   onClose: () => void;
-  onApplyCosts?: (costs: { transferCosts: number | null; certificationCosts: number | null; logistics: number | null }) => void;
 }
 
 export function LogisticsModal({
@@ -18,7 +17,6 @@ export function LogisticsModal({
   targetCountry,
   isOpen,
   onClose,
-  onApplyCosts,
 }: LogisticsModalProps) {
   const { state } = useAppState();
   const [selectedDuration, setSelectedDuration] = useState<CapacityDuration>('YEARLY');
@@ -40,9 +38,19 @@ export function LogisticsModal({
 
   if (!isOpen) return null;
 
-  const originHub = HUB_BASIS_SPREADS[originCountry] || { hubName: `${originCountry} Hub`, operator: 'National TSO', basisSpreadToTtfEurMwh: 0.50 };
-  const targetHub = HUB_BASIS_SPREADS[targetCountry] || { hubName: `${targetCountry} Hub`, operator: 'National TSO', basisSpreadToTtfEurMwh: 0.00 };
-  const basisSpreadDiff = hubBasisSpread(targetCountry, 0.00) - hubBasisSpread(originCountry, 0.50);
+  // A country with no hub on record shows "no hub on record" and "n/a" - never an invented hub or spread.
+  const originHubRecord = HUB_BASIS_SPREADS[originCountry];
+  const targetHubRecord = HUB_BASIS_SPREADS[targetCountry];
+  const originHubName = originHubRecord ? originHubRecord.hubName : 'No hub on record';
+  const targetHubName = targetHubRecord ? targetHubRecord.hubName : 'No hub on record';
+  // Same overridable desk assumption everywhere (tile and spread), not the static table value.
+  const originBasis = originHubRecord ? hubBasisSpread(originCountry) : null;
+  const targetBasis = targetHubRecord ? hubBasisSpread(targetCountry) : null;
+  const basisSpreadDiff = originBasis !== null && targetBasis !== null ? targetBasis - originBasis : null;
+  const fmtSigned = (v: number | null) => (v === null ? 'n/a' : v >= 0 ? `+€${v.toFixed(2)}` : `−€${Math.abs(v).toFixed(2)}`);
+  // Every cost line comes from the logistics engine (desk assumptions / verified tariffs); a missing one is unverified.
+  const engineItems = (mode: ModeCostBreakdown): [string, string | null][] =>
+    mode.lineItems.map(li => [li.label, li.costEurMwh === null ? null : li.costEurMwh.toFixed(2)]);
 
   const durationConfig = CAM_NC_DURATION_MULTIPLIERS[selectedDuration];
   const injectionIncentive = NATIONAL_BIOMETHANE_INJECTION_INCENTIVES[originCountry];
@@ -62,12 +70,7 @@ export function LogisticsModal({
       mode: assessment.modes.virtualSwap,
       title: 'Virtual UDB swap',
       feasibility: assessment.modes.virtualSwap.regulatoryFeasibility === 'HIGH' ? 'High' : 'Contested',
-      items: [
-        ['Registry transfer', '0.90'],
-        ['Certification surcharge', '0.55'],
-        ['Transit ' + originCountry + ' → ' + targetCountry, assessment.modes.virtualSwap.totalCostEurMwh !== null ? (assessment.modes.virtualSwap.totalCostEurMwh - 1.45 > 0 ? (assessment.modes.virtualSwap.totalCostEurMwh - 1.45).toFixed(2) : '0.35') : null],
-        ['Liquefaction', null],
-      ],
+      items: engineItems(assessment.modes.virtualSwap),
       forList: ['Cheapest all-in route', 'No capacity booking on PRISMA', 'Settles inside one compliance day'],
       againstList: ['Contested in some member states', 'Requires both registries live on UDB'],
       legal: 'RED III Art. 31a (UDB not live — launch postponed to end-2026, EBA) · RED III Art. 30(1)',
@@ -77,15 +80,7 @@ export function LogisticsModal({
       mode: assessment.modes.physicalPipeline,
       title: `Continuous grid path (${selectedDuration})`,
       feasibility: assessment.physicalRoute.totalPhysicalTariffEurMwh !== null ? 'High' : 'Low',
-      items: [
-        [`TSO Capacity (${durationConfig.multiplier.toFixed(2)}×)`, assessment.physicalRoute.totalPhysicalTariffEurMwh !== null ? assessment.physicalRoute.totalPhysicalTariffEurMwh.toFixed(2) : '1.80'],
-        ['Shrinkage fuel gas', assessment.physicalRoute.shrinkageEurMwh !== null ? assessment.physicalRoute.shrinkageEurMwh.toFixed(2) : '0.15'],
-        ['Multi-TSO balancing', '0.50'],
-        ['PRISMA auction fee', '0.15'],
-        ...(assessment.dsoInjectionCreditEurMwh > 0 ? [
-          ['DSO injection credit', `-${assessment.dsoInjectionCreditEurMwh.toFixed(2)}`] as [string, string]
-        ] : []),
-      ],
+      items: engineItems(assessment.modes.physicalPipeline),
       forList: ['Unambiguous UDB evidence', 'Accepted by every member state', `CAM NC ${selectedDuration} product booked`],
       againstList: ['Winter cleared prices run 3–5× summer', 'Capacity must be won on PRISMA auction'],
       legal: 'Reg. (EU) 2017/459 CAM NC · Reg. (EU) 2017/460 TAR NC',
@@ -95,12 +90,7 @@ export function LogisticsModal({
       mode: assessment.modes.bioLng,
       title: 'Physical bio-LNG',
       feasibility: 'Low',
-      items: [
-        ['Liquefaction', null],
-        ['Road haulage', '2.40'],
-        ['Terminal regasification', null],
-        ['Registry transfer', '0.90'],
-      ],
+      items: engineItems(assessment.modes.bioLng),
       forList: ['Reaches grid-isolated and non-EU buyers', 'Unlocks the blocked UK RTFO corridor'],
       againstList: ['Tariff incomplete — never summed around a null', 'Highest carbon cost on the delivery leg'],
       legal: 'RED III Art. 28(2) · national terminal codes',
@@ -163,7 +153,7 @@ export function LogisticsModal({
               Delivery playbook · {originCountry} → {targetCountry}
             </h4>
             <div style={{ fontSize: '12px', marginTop: '3px' }} className="mut">
-              {originHub.hubName} → {targetHub.hubName} · basis to TTF {basisSpreadDiff >= 0 ? `+€${basisSpreadDiff.toFixed(2)}` : `−€${Math.abs(basisSpreadDiff).toFixed(2)}`}/MWh · transit {assessment.physicalRoute.totalPhysicalTariffEurMwh !== null ? `€${assessment.physicalRoute.totalPhysicalTariffEurMwh.toFixed(2)}/MWh` : '€1.80/MWh'}
+              {originHubName} → {targetHubName} · basis spread {basisSpreadDiff === null ? 'n/a' : `${fmtSigned(basisSpreadDiff)}/MWh`} · transit {assessment.physicalRoute.totalPhysicalTariffEurMwh !== null ? `€${assessment.physicalRoute.totalPhysicalTariffEurMwh.toFixed(2)}/MWh` : 'unverified'}
             </div>
           </div>
           <button
@@ -408,22 +398,22 @@ export function LogisticsModal({
             >
               <div style={{ backgroundColor: 'var(--color-bg)', padding: '10px 14px' }}>
                 <div className="eyebrow">Origin hub</div>
-                <div style={{ fontSize: '15px', fontWeight: 600 }}>{originHub.hubName}</div>
+                <div style={{ fontSize: '15px', fontWeight: 600 }}>{originHubName}</div>
               </div>
               <div style={{ backgroundColor: 'var(--color-bg)', padding: '10px 14px' }}>
                 <div className="eyebrow">Target hub</div>
-                <div style={{ fontSize: '15px', fontWeight: 600 }}>{targetHub.hubName}</div>
+                <div style={{ fontSize: '15px', fontWeight: 600 }}>{targetHubName}</div>
               </div>
               <div style={{ backgroundColor: 'var(--color-bg)', padding: '10px 14px' }}>
                 <div className="eyebrow">Basis to TTF</div>
                 <div className="num" style={{ fontSize: '15px', fontWeight: 600 }}>
-                  {originHub.basisSpreadToTtfEurMwh >= 0 ? `+€${originHub.basisSpreadToTtfEurMwh.toFixed(2)}` : `−€${Math.abs(originHub.basisSpreadToTtfEurMwh).toFixed(2)}`}
+                  {fmtSigned(originBasis)}
                 </div>
               </div>
               <div style={{ backgroundColor: 'var(--color-bg)', padding: '10px 14px' }}>
                 <div className="eyebrow">Basis spread</div>
                 <div className="num" style={{ fontSize: '15px', fontWeight: 600 }}>
-                  €{Math.abs(basisSpreadDiff).toFixed(2)}
+                  {basisSpreadDiff === null ? 'n/a' : `€${Math.abs(basisSpreadDiff).toFixed(2)}`}
                 </div>
               </div>
             </div>
@@ -487,41 +477,6 @@ export function LogisticsModal({
             </div>
 
             <div className="m-stack" style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
-              {onApplyCosts && (
-                <>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    style={{ flex: 1, fontSize: '12px' }}
-                    onClick={() => {
-                      onApplyCosts({
-                        transferCosts: 0.90,
-                        certificationCosts: 0.55,
-                        logistics: assessment.modes.virtualSwap.totalCostEurMwh,
-                      });
-                      onClose();
-                    }}
-                  >
-                    Apply Virtual Swap (€{assessment.modes.virtualSwap.totalCostEurMwh?.toFixed(2) ?? '—'}/MWh)
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    style={{ flex: 1, fontSize: '12px' }}
-                    disabled={assessment.modes.physicalPipeline.totalCostEurMwh === null}
-                    onClick={() => {
-                      onApplyCosts({
-                        transferCosts: 0.90,
-                        certificationCosts: 0.55,
-                        logistics: assessment.modes.physicalPipeline.totalCostEurMwh,
-                      });
-                      onClose();
-                    }}
-                  >
-                    Apply Physical Path (€{assessment.modes.physicalPipeline.totalCostEurMwh?.toFixed(2) ?? '—'}/MWh)
-                  </button>
-                </>
-              )}
             </div>
 
             <p style={{ fontSize: '11px', lineHeight: 1.55, margin: '12px 0 0' }} className="mut">

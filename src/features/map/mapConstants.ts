@@ -10,40 +10,40 @@ export interface CountryMeta {
   name: string;
   status: 'ACTIVE' | 'EMERGING' | 'FUTURE_2028' | 'NONE';
   legal: string;
-  plants: number;
+  /** Desk estimate of annual production (TWh/yr), not derived from the plant registry. */
   twh: number;
   center: [number, number]; // [lon, lat]
 }
 
 export const COUNTRIES: Record<string, CountryMeta> = {
-  'Germany': { iso: 'DE', name: 'Germany', status: 'ACTIVE', legal: '§ 37a BImSchG; 38. BImSchV', plants: 242, twh: 11.8, center: [10.45, 51.16] },
-  'Netherlands': { iso: 'NL', name: 'Netherlands', status: 'ACTIVE', legal: 'Regeling energie vervoer artikel 7', plants: 82, twh: 3.2, center: [5.29, 52.13] },
-  'France': { iso: 'FR', name: 'France', status: 'ACTIVE', legal: "Code de l'énergie Art. L.446-24; Décret 2022-640 (CPB); Code des douanes Art. 266 quindecies (TIRUERT)", plants: 652, twh: 10.4, center: [2.21, 46.22] },
-  'Italy': { iso: 'IT', name: 'Italy', status: 'ACTIVE', legal: 'DM 2 marzo 2018 art. 5 & art. 12; DM 16 marzo 2023 n. 107', plants: 135, twh: 4.8, center: [12.56, 41.87] },
-  'Denmark': { iso: 'DK', name: 'Denmark', status: 'ACTIVE', legal: 'Bekendtgørelse om biobrændstoffer m.v. (BEK nr 1243 af 20/11/2024)', plants: 64, twh: 5.6, center: [9.50, 56.26] },
-  'Austria': { iso: 'AT', name: 'Austria', status: 'ACTIVE', legal: 'KOG § 10 · EAG § 86', plants: 16, twh: 0.45, center: [14.55, 47.51] },
-  'Sweden': { iso: 'SE', name: 'Sweden', status: 'ACTIVE', legal: 'Lag (1994:1776) om skatt på energi 7 kap. 4 §; Lag (2010:598)', plants: 72, twh: 2.1, center: [18.64, 60.12] },
-  'Finland': { iso: 'FI', name: 'Finland', status: 'ACTIVE', legal: 'Laki biopolttoaineiden käytön edistämisestä liikenteessä (446/2007) 4 §; Laki 393/2013', plants: 26, twh: 0.55, center: [25.74, 61.92] },
-  'Belgium': { iso: 'BE', name: 'Belgium', status: 'ACTIVE', legal: 'Energiedecreet Art. 7.1.1 et seq.', plants: 12, twh: 0.38, center: [4.46, 50.50] },
-  'Spain': { iso: 'ES', name: 'Spain', status: 'ACTIVE', legal: 'Real Decreto 376/2022; Circular 1/2024 CNMC; Orden TED/1027/2023', plants: 24, twh: 0.85, center: [-3.74, 40.46] },
-  'Poland': { iso: 'PL', name: 'Poland', status: 'EMERGING', legal: 'Ustawa o biokomponentach i biopaliwach ciekłych art. 23 & 28c(2)', plants: 8, twh: 0.32, center: [19.14, 51.91] },
-  'Czechia': { iso: 'CZ', name: 'Czechia', status: 'EMERGING', legal: 'Zákon č. 165/2012 Sb. (POZE) § 24-27; Vyhláška 110/2022 Sb.', plants: 11, twh: 0.42, center: [15.47, 49.81] },
-  'Portugal': { iso: 'PT', name: 'Portugal', status: 'EMERGING', legal: 'Decreto-Lei n.º 84/2022 arts. 8, 10, 40-41', plants: 4, twh: 0.14, center: [-8.22, 39.39] },
-  'Ireland': { iso: 'IE', name: 'Ireland', status: 'EMERGING', legal: 'SI 33/2010; GNI Renewable Gas Registry pilot', plants: 5, twh: 0.18, center: [-8.24, 53.41] },
-  'Greece': { iso: 'GR', name: 'Greece', status: 'EMERGING', legal: 'Law 5215/2025; Law 3468/2006 art. 32H', plants: 2, twh: 0.05, center: [21.82, 39.07] },
-  'Romania': { iso: 'RO', name: 'Romania', status: 'EMERGING', legal: 'Law 220/2008; OUG 9/2026', plants: 3, twh: 0.09, center: [24.96, 45.94] },
-  'Hungary': { iso: 'HU', name: 'Hungary', status: 'EMERGING', legal: '2010. évi CXVII. tv. (Büat.); 821/2021. (XII. 28.) Korm. rendelet', plants: 5, twh: 0.16, center: [19.50, 47.16] },
-  'Estonia': { iso: 'EE', name: 'Estonia', status: 'EMERGING', legal: 'Atmospheric Air Protection Act (VÕKS) § 122-123; Liquid Fuel Act § 2-1', plants: 7, twh: 0.28, center: [25.01, 58.59] },
-  'Lithuania': { iso: 'LT', name: 'Lithuania', status: 'EMERGING', legal: 'Order 1-158 pt 32-33; Law on Alternative Fuels art. 21', plants: 6, twh: 0.22, center: [23.88, 55.16] },
-  'Latvia': { iso: 'LV', name: 'Latvia', status: 'EMERGING', legal: 'Transporta enerģijas likums; MK noteikumi Nr. 336963', plants: 4, twh: 0.15, center: [24.60, 56.87] },
-  'Switzerland': { iso: 'CH', name: 'Switzerland', status: 'EMERGING', legal: 'Mineralölsteuergesetz (MinStG) Art. 2a · 12b; MinStV Art. 19b', plants: 41, twh: 0.52, center: [8.22, 46.81] },
-  'Norway': { iso: 'NO', name: 'Norway', status: 'EMERGING', legal: 'Produktforskriften kapittel 3', plants: 10, twh: 0.4, center: [8.46, 60.47] },
-  'United Kingdom': { iso: 'GB', name: 'United Kingdom', status: 'ACTIVE', legal: 'RTFO Order 2007; DfT RTFO Biomethane Guidance Dec 2024 §3.17 & §2.13', plants: 124, twh: 6.2, center: [-3.43, 55.37] },
-  'Slovakia': { iso: 'SK', name: 'Slovakia', status: 'FUTURE_2028', legal: 'Act No. 309/2009 Coll. §14a-14b; SPP-d Domain Protocol E.10.7', plants: 4, twh: 0.12, center: [19.69, 48.66] },
-  'Slovenia': { iso: 'SI', name: 'Slovenia', status: 'FUTURE_2028', legal: 'Uredba o obnovljivih virih energije v prometu (Ur. l. RS 208/2021) art. 4(2)', plants: 2, twh: 0.05, center: [14.99, 46.15] },
-  'Croatia': { iso: 'HR', name: 'Croatia', status: 'FUTURE_2028', legal: 'Zakon o biogorivima za prijevoz (NN 65/2009...52/2021)', plants: 3, twh: 0.08, center: [15.20, 45.10] },
-  'Bulgaria': { iso: 'BG', name: 'Bulgaria', status: 'FUTURE_2028', legal: 'ZEVI Art. 47-50', plants: 2, twh: 0.06, center: [25.48, 42.73] },
-  'Luxembourg': { iso: 'LU', name: 'Luxembourg', status: 'FUTURE_2028', legal: "Loi d'accise 17 Dec 2010 art. 1; RGD 3 Feb 2023", plants: 2, twh: 0.02, center: [6.12, 49.81] },
+  'Germany': { iso: 'DE', name: 'Germany', status: 'ACTIVE', legal: '§ 37a BImSchG; 38. BImSchV', twh: 11.8, center: [10.45, 51.16] },
+  'Netherlands': { iso: 'NL', name: 'Netherlands', status: 'ACTIVE', legal: 'Regeling energie vervoer artikel 7', twh: 3.2, center: [5.29, 52.13] },
+  'France': { iso: 'FR', name: 'France', status: 'ACTIVE', legal: "Code de l'énergie Art. L.446-24; Décret 2022-640 (CPB); Code des douanes Art. 266 quindecies (TIRUERT)", twh: 10.4, center: [2.21, 46.22] },
+  'Italy': { iso: 'IT', name: 'Italy', status: 'ACTIVE', legal: 'DM 2 marzo 2018 art. 5 & art. 12; DM 16 marzo 2023 n. 107', twh: 4.8, center: [12.56, 41.87] },
+  'Denmark': { iso: 'DK', name: 'Denmark', status: 'ACTIVE', legal: 'Bekendtgørelse om biobrændstoffer m.v. (BEK nr 1243 af 20/11/2024)', twh: 5.6, center: [9.50, 56.26] },
+  'Austria': { iso: 'AT', name: 'Austria', status: 'ACTIVE', legal: 'KOG § 10 · EAG § 86', twh: 0.45, center: [14.55, 47.51] },
+  'Sweden': { iso: 'SE', name: 'Sweden', status: 'ACTIVE', legal: 'Lag (1994:1776) om skatt på energi 7 kap. 4 §; Lag (2010:598)', twh: 2.1, center: [18.64, 60.12] },
+  'Finland': { iso: 'FI', name: 'Finland', status: 'ACTIVE', legal: 'Laki biopolttoaineiden käytön edistämisestä liikenteessä (446/2007) 4 §; Laki 393/2013', twh: 0.55, center: [25.74, 61.92] },
+  'Belgium': { iso: 'BE', name: 'Belgium', status: 'ACTIVE', legal: 'Energiedecreet Art. 7.1.1 et seq.', twh: 0.38, center: [4.46, 50.50] },
+  'Spain': { iso: 'ES', name: 'Spain', status: 'ACTIVE', legal: 'Real Decreto 376/2022; Circular 1/2024 CNMC; Orden TED/1027/2023', twh: 0.85, center: [-3.74, 40.46] },
+  'Poland': { iso: 'PL', name: 'Poland', status: 'EMERGING', legal: 'Ustawa o biokomponentach i biopaliwach ciekłych art. 23 & 28c(2)', twh: 0.32, center: [19.14, 51.91] },
+  'Czechia': { iso: 'CZ', name: 'Czechia', status: 'EMERGING', legal: 'Zákon č. 165/2012 Sb. (POZE) § 24-27; Vyhláška 110/2022 Sb.', twh: 0.42, center: [15.47, 49.81] },
+  'Portugal': { iso: 'PT', name: 'Portugal', status: 'EMERGING', legal: 'Decreto-Lei n.º 84/2022 arts. 8, 10, 40-41', twh: 0.14, center: [-8.22, 39.39] },
+  'Ireland': { iso: 'IE', name: 'Ireland', status: 'EMERGING', legal: 'SI 33/2010; GNI Renewable Gas Registry pilot', twh: 0.18, center: [-8.24, 53.41] },
+  'Greece': { iso: 'GR', name: 'Greece', status: 'EMERGING', legal: 'Law 5215/2025; Law 3468/2006 art. 32H', twh: 0.05, center: [21.82, 39.07] },
+  'Romania': { iso: 'RO', name: 'Romania', status: 'EMERGING', legal: 'Law 220/2008; OUG 9/2026', twh: 0.09, center: [24.96, 45.94] },
+  'Hungary': { iso: 'HU', name: 'Hungary', status: 'EMERGING', legal: '2010. évi CXVII. tv. (Büat.); 821/2021. (XII. 28.) Korm. rendelet', twh: 0.16, center: [19.50, 47.16] },
+  'Estonia': { iso: 'EE', name: 'Estonia', status: 'EMERGING', legal: 'Atmospheric Air Protection Act (VÕKS) § 122-123; Liquid Fuel Act § 2-1', twh: 0.28, center: [25.01, 58.59] },
+  'Lithuania': { iso: 'LT', name: 'Lithuania', status: 'EMERGING', legal: 'Order 1-158 pt 32-33; Law on Alternative Fuels art. 21', twh: 0.22, center: [23.88, 55.16] },
+  'Latvia': { iso: 'LV', name: 'Latvia', status: 'EMERGING', legal: 'Transporta enerģijas likums; MK noteikumi Nr. 336963', twh: 0.15, center: [24.60, 56.87] },
+  'Switzerland': { iso: 'CH', name: 'Switzerland', status: 'EMERGING', legal: 'Mineralölsteuergesetz (MinStG) Art. 2a · 12b; MinStV Art. 19b', twh: 0.52, center: [8.22, 46.81] },
+  'Norway': { iso: 'NO', name: 'Norway', status: 'EMERGING', legal: 'Produktforskriften kapittel 3', twh: 0.4, center: [8.46, 60.47] },
+  'United Kingdom': { iso: 'GB', name: 'United Kingdom', status: 'ACTIVE', legal: 'RTFO Order 2007; DfT RTFO Biomethane Guidance Dec 2024 §3.17 & §2.13', twh: 6.2, center: [-3.43, 55.37] },
+  'Slovakia': { iso: 'SK', name: 'Slovakia', status: 'FUTURE_2028', legal: 'Act No. 309/2009 Coll. §14a-14b; SPP-d Domain Protocol E.10.7', twh: 0.12, center: [19.69, 48.66] },
+  'Slovenia': { iso: 'SI', name: 'Slovenia', status: 'FUTURE_2028', legal: 'Uredba o obnovljivih virih energije v prometu (Ur. l. RS 208/2021) art. 4(2)', twh: 0.05, center: [14.99, 46.15] },
+  'Croatia': { iso: 'HR', name: 'Croatia', status: 'FUTURE_2028', legal: 'Zakon o biogorivima za prijevoz (NN 65/2009...52/2021)', twh: 0.08, center: [15.20, 45.10] },
+  'Bulgaria': { iso: 'BG', name: 'Bulgaria', status: 'FUTURE_2028', legal: 'ZEVI Art. 47-50', twh: 0.06, center: [25.48, 42.73] },
+  'Luxembourg': { iso: 'LU', name: 'Luxembourg', status: 'FUTURE_2028', legal: "Loi d'accise 17 Dec 2010 art. 1; RGD 3 Feb 2023", twh: 0.02, center: [6.12, 49.81] },
 };
 
 /** Default map centre [lon, lat]: midpoint of the 28 jurisdictions (Ireland/Portugal to Finland). */

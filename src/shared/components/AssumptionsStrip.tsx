@@ -1,13 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  getAssumption,
   getAssumptionDefinition,
   isOverridden,
   resetAssumption,
-  setAssumption,
   AssumptionBasis,
 } from '../../domain/assumptions/registry';
+import { AssumptionInput } from './AssumptionInput';
 import { useAssumptionsVersion } from '../hooks/useAssumptionsVersion';
 
 export const BASIS_LABEL: Record<AssumptionBasis, string> = {
@@ -49,19 +48,7 @@ export function AssumptionsStrip({ keys, title = 'Assumptions used' }: Assumptio
               </div>
             </div>
             <div className="ds-assumptions-control">
-              <input
-                type="number"
-                className={`input num ${overridden ? 'overridden' : ''}`}
-                aria-label={d.label}
-                value={getAssumption(d.key)}
-                step="any"
-                min={d.min}
-                max={d.max}
-                onChange={e => {
-                  const v = e.target.valueAsNumber;
-                  if (Number.isFinite(v)) setAssumption(d.key, v);
-                }}
-              />
+              <AssumptionInput assumptionKey={d.key} label={d.label} min={d.min} max={d.max} className={`input num ${overridden ? 'overridden' : ''}`} />
               <span className="mut">{d.unit}</span>
               {overridden && (
                 <button

@@ -8,7 +8,7 @@ import './index.css'
 window.addEventListener('vite:preloadError', (event) => {
   event.preventDefault();
   const reloadKey = 'chunk_reload_loop';
-  let lastReload = 0;
+  let lastReload: number;
   try {
     lastReload = parseInt(sessionStorage.getItem(reloadKey) || '0', 10);
   } catch {

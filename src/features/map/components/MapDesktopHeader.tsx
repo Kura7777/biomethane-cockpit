@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowLeftRight } from 'lucide-react';
+import { getPlantCount } from '../plantCounts';
 import {
   CountryMeta,
   ACCEPT_FOREIGN_CONFIG,
@@ -113,7 +114,7 @@ export function MapDesktopHeader({
           >
             {sortedCountries.map(([name, c]) => (
               <option key={c.iso} value={name}>
-                {c.iso} · {c.name} ({c.plants}p)
+                {c.iso} · {c.name} ({getPlantCount(c.iso)}p)
               </option>
             ))}
           </select>

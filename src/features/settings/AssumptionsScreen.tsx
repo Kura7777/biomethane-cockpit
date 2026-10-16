@@ -3,12 +3,11 @@ import { Link } from 'react-router-dom';
 import {
   ASSUMPTION_DEFINITIONS,
   AssumptionCategory,
-  getAssumption,
   isOverridden,
   resetAllAssumptions,
   resetAssumption,
-  setAssumption,
 } from '../../domain/assumptions/registry';
+import { AssumptionInput } from '../../shared/components/AssumptionInput';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import './mobileSettings.css';
@@ -152,20 +151,7 @@ export function AssumptionsScreen() {
                         <div style={{ fontWeight: 600, fontSize: '14px' }}>{d.label}</div>
                         <div className="mut" style={{ fontSize: '12px', marginTop: '2px' }}>{d.usedIn}</div>
                         <div className="asm-card-value">
-                          <input
-                            type="number"
-                            className="input num"
-                            aria-label={d.label}
-                            value={getAssumption(d.key)}
-                            step="any"
-                            min={d.min}
-                            max={d.max}
-                            onChange={e => {
-                              const v = e.target.valueAsNumber;
-                              if (Number.isFinite(v)) setAssumption(d.key, v);
-                            }}
-                            style={{ borderColor: overridden ? 'var(--color-accent)' : undefined }}
-                          />
+                          <AssumptionInput assumptionKey={d.key} label={d.label} min={d.min} max={d.max} className="input num" style={{ borderColor: overridden ? 'var(--color-accent)' : undefined }} />
                           <span className="mut">{d.unit}</span>
                           <span className={`chip ${d.basis === 'MARKET_MARK' ? 'chip-pos' : ''}`} style={{ marginLeft: 'auto' }}>
                             {BASIS_LABEL[d.basis]}
@@ -206,20 +192,7 @@ export function AssumptionsScreen() {
                             <div className="mut" style={{ fontSize: '10.5px' }}>{d.usedIn}</div>
                           </td>
                           <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                            <input
-                              type="number"
-                              className="input num"
-                              aria-label={d.label}
-                              value={getAssumption(d.key)}
-                              step="any"
-                              min={d.min}
-                              max={d.max}
-                              onChange={e => {
-                                const v = e.target.valueAsNumber;
-                                if (Number.isFinite(v)) setAssumption(d.key, v);
-                              }}
-                              style={{ width: '90px', fontSize: '12px', padding: '2px 6px', textAlign: 'right', borderColor: overridden ? 'var(--color-accent)' : undefined }}
-                            />
+                            <AssumptionInput assumptionKey={d.key} label={d.label} min={d.min} max={d.max} className="input num" style={{ width: '90px', fontSize: '12px', padding: '2px 6px', textAlign: 'right', borderColor: overridden ? 'var(--color-accent)' : undefined }} />
                             <span className="mut" style={{ marginLeft: '4px' }}>{d.unit}</span>
                             {overridden && (
                               <div style={{ fontSize: '10px', marginTop: '2px' }}>

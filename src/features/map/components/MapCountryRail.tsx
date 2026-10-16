@@ -14,6 +14,7 @@ import { getPosRoute } from '../../../domain/routes';
 import { BiomethanePlant } from '../../../domain/plants/types';
 import { DestinationComparison } from './DestinationComparison';
 
+import { getPlantCount } from '../plantCounts';
 interface MapCountryRailProps {
   origin: string;
   target: string;
@@ -117,7 +118,7 @@ export function MapCountryRailBody({
   const summaryCard = (
     <div className="map-summary-card" data-testid="map-summary-card">
       <div className="eyebrow" style={{ fontWeight: 800 }}>
-        {originMeta.name.toUpperCase()} · {originMeta.plants} plants · {originMeta.twh} TWh
+        {originMeta.name.toUpperCase()} · {getPlantCount(originMeta.iso)} plants · {originMeta.twh} TWh (est.)
       </div>
       <div className="map-summary-dots">
         <span className="map-summary-dot-item">
@@ -269,28 +270,22 @@ export function MapCountryRailBody({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: 'repeat(2, 1fr)',
           gap: '1px',
           backgroundColor: 'var(--color-divider)',
         }}
       >
         <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 14px' }}>
           <div className="eyebrow">Active plants</div>
-          <div className="num" style={{ fontSize: '18px', fontWeight: 800 }}>{selectedMeta.plants}</div>
+          <div className="num" style={{ fontSize: '18px', fontWeight: 800 }}>{getPlantCount(selectedMeta.iso)}</div>
         </div>
         <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 14px' }}>
-          <div className="eyebrow">Production · TWh/yr</div>
+          <div className="eyebrow">Production · TWh/yr (est.)</div>
           <div className="num" style={{ fontSize: '18px', fontWeight: 800 }}>{selectedMeta.twh} TWh</div>
-        </div>
-        <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 14px' }}>
-          <div className="eyebrow">Avg plant size</div>
-          <div className="num" style={{ fontSize: '18px', fontWeight: 800 }}>
-            {((selectedMeta.twh * 1000) / Math.max(1, selectedMeta.plants)).toFixed(1)} GWh
-          </div>
         </div>
       </div>
       <div style={{ padding: '6px 16px 8px', fontSize: '11px', backgroundColor: 'var(--color-surface)' }} className="mut">
-        Desk estimates — source not yet verified
+        Plant count from the plant registry; TWh is a desk estimate (source not yet verified)
       </div>
 
       {/* Delivery Options */}
@@ -302,7 +297,7 @@ export function MapCountryRailBody({
         }}
       >
         <div className="eyebrow" style={{ marginBottom: '8px' }}>
-          Delivery options · {originMeta.iso} → {selectedMeta.iso}
+          Delivery options · {originMeta.iso} → {targetMeta.iso}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
           <div>
@@ -310,7 +305,7 @@ export function MapCountryRailBody({
               <span>A · Virtual UDB swap</span>
               <span className="num" style={{ color: corridorCalculation.modes.virtualSwap.totalCostEurMwh !== null ? 'var(--color-text)' : 'var(--color-accent-700)' }}>
                 {corridorCalculation.modes.virtualSwap.totalCostEurMwh !== null
-                  ? `€${corridorCalculation.modes.virtualSwap.totalCostEurMwh.toFixed(2)}`
+                  ? `€${corridorCalculation.modes.virtualSwap.totalCostEurMwh.toFixed(2)}/MWh`
                   : 'Unverified'}
               </span>
             </div>
@@ -326,14 +321,14 @@ export function MapCountryRailBody({
               <span>B · Continuous grid path</span>
               <span className="num" style={{ color: corridorCalculation.modes.physicalPipeline.totalCostEurMwh !== null ? 'var(--color-text)' : 'var(--color-accent-700)' }}>
                 {corridorCalculation.modes.physicalPipeline.totalCostEurMwh !== null
-                  ? `€${corridorCalculation.modes.physicalPipeline.totalCostEurMwh.toFixed(2)}`
+                  ? `€${corridorCalculation.modes.physicalPipeline.totalCostEurMwh.toFixed(2)}/MWh`
                   : 'Unverified'}
               </span>
             </div>
             <div style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }} className="mut">
               <span className="chip chip-info" style={{ fontSize: '10px' }}>Desk estimate (partial)</span>
               {(() => {
-                const selPosRoute = getPosRoute(originMeta.iso, selectedMeta.iso);
+                const selPosRoute = getPosRoute(originMeta.iso, targetMeta.iso);
                 const selPossible = (selPosRoute.schemes || []).filter(s => s.status === 'POSSIBLE');
                 const reqBk = selPossible.some(s => /capacit(y|ies)|book|nominat/i.test(`${s.conditions || ''} ${s.reason || ''}`));
                 const bkName = selPossible.find(s => /capacit(y|ies)|book|nominat/i.test(`${s.conditions || ''} ${s.reason || ''}`))?.schemeName;
@@ -348,7 +343,7 @@ export function MapCountryRailBody({
               <span>C · Physical bio-LNG</span>
               <span className="num" style={{ color: corridorCalculation.modes.bioLng.totalCostEurMwh !== null ? 'var(--color-text)' : 'var(--color-accent-700)' }}>
                 {corridorCalculation.modes.bioLng.totalCostEurMwh !== null
-                  ? `€${corridorCalculation.modes.bioLng.totalCostEurMwh.toFixed(2)}`
+                  ? `€${corridorCalculation.modes.bioLng.totalCostEurMwh.toFixed(2)}/MWh`
                   : 'Unverified'}
               </span>
             </div>
