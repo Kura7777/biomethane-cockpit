@@ -266,7 +266,7 @@ test.describe('Ask the desk (desktop)', () => {
     await expect(page.getByTestId('helper-answered-by')).toHaveText(/^Haiku 5\.5 · ≈ (<\$0\.001|\$0\.00\d)$/);
     expect(body).toContain('"model":"claude-haiku-5-5"');
     expect(body).toContain('"effort":"low"');
-    expect(body).not.toContain('web_search'); // off by default
+    expect(body).toContain('web_search_20250305'); // on by default
     expect(body).not.toContain('"fallbacks"');
 
     // The same desk setting shows on the Pricing desk.
