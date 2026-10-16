@@ -109,13 +109,13 @@ export function setStoredGeminiApiKey(key: string, persistToLocalStorage?: boole
       }
     }
     if (typeof localStorage !== 'undefined') {
-      const shouldPersist = persistToLocalStorage !== undefined ? persistToLocalStorage : isGeminiKeyPersisted();
+      const shouldPersist = persistToLocalStorage !== false;
       if (norm && shouldPersist) {
         localStorage.setItem(GEMINI_API_KEY_STORAGE_KEY, norm);
         localStorage.setItem(GEMINI_API_KEY_PERSIST_KEY, 'true');
       } else {
         localStorage.removeItem(GEMINI_API_KEY_STORAGE_KEY);
-        if (persistToLocalStorage === false) {
+        if (persistToLocalStorage === false || !norm) {
           localStorage.removeItem(GEMINI_API_KEY_PERSIST_KEY);
         }
       }
