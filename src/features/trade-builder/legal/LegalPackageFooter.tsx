@@ -4,8 +4,11 @@ import { TBA } from '../../../domain/trade/legalPackage';
 
 interface LegalPackageFooterProps {
   assessment: TradeAssessment;
-  signoffRecord: { signedBy: string; timestamp: string } | null;
-  canSignoff: boolean;
+  signoff: { by: string; at: string } | null;
+  /** Whether the deal is on the Deal Blotter (a sign-off is stored on the saved deal). */
+  isSaved: boolean;
+  reviewerName: string;
+  onReviewerNameChange: (name: string) => void;
   onComplianceSignoff: () => void;
   onDownloadTermSheetPdf: () => void;
   onDownloadEfetPdf: () => void;
@@ -17,8 +20,10 @@ interface LegalPackageFooterProps {
 
 export function LegalPackageFooter({
   assessment,
-  signoffRecord,
-  canSignoff,
+  signoff,
+  isSaved,
+  reviewerName,
+  onReviewerNameChange,
   onComplianceSignoff,
   onDownloadTermSheetPdf,
   onDownloadEfetPdf,
@@ -51,7 +56,7 @@ export function LegalPackageFooter({
       </div>
 
       <div className="lp-footer-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-        {signoffRecord ? (
+        {signoff ? (
           <span
             className="chip"
             style={{
@@ -63,19 +68,33 @@ export function LegalPackageFooter({
               padding: '5px 10px',
             }}
           >
-            ✓ Compliance reviewed: {signoffRecord.signedBy} ({new Date(signoffRecord.timestamp).toLocaleTimeString()})
+            ✓ Compliance reviewed: {signoff.by} ({new Date(signoff.at).toLocaleString('en-GB')})
           </span>
-        ) : canSignoff ? (
-          <button
-            type="button"
-            className="btn btn-secondary"
-            style={{ padding: '6px 12px', fontSize: '12px' }}
-            onClick={onComplianceSignoff}
-            title="Record that compliance has reviewed this deal"
-          >
-            🛡️ Record Compliance Review
-          </button>
-        ) : null}
+        ) : (
+          <>
+            <input
+              type="text"
+              className="input"
+              style={{ padding: '5px 8px', fontSize: '12px', width: '120px' }}
+              value={reviewerName}
+              onChange={e => onReviewerNameChange(e.target.value)}
+              aria-label="Reviewer name (stored on this device)"
+              title="Reviewer name: a label stored on this device, not a login"
+              maxLength={60}
+            />
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{ padding: '6px 12px', fontSize: '12px' }}
+              onClick={onComplianceSignoff}
+              disabled={!isSaved}
+              title={isSaved ? 'Record on the Deal Blotter that this deal has been compliance-reviewed (a note on this device, not an approval workflow)' : 'Save the deal to the blotter first'}
+              data-testid="compliance-signoff"
+            >
+              {isSaved ? '🛡️ Record Compliance Review' : 'Save to blotter first'}
+            </button>
+          </>
+        )}
 
         <button
           type="button"

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { LEGAL_CITATIONS, getCitationById } from '../../citations/registry';
+import { LEGAL_CITATIONS } from '../../citations/registry';
 import { verifyQuoteAgainstVault, extractQuoteProofsFromText } from '../verifier';
 import { KNOWLEDGE_VAULT_DOCS } from '../knowledgeBase';
 

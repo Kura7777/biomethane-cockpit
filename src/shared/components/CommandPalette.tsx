@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/context';
 import { showToast } from '../../app/DeskToastContainer';
+import { NAV_GROUPS, ASK_NAV_ITEM } from '../../app/navConfig';
 
 interface PaletteItem {
   id: string;
@@ -14,11 +15,9 @@ interface PaletteItem {
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
-  onOpenPlaybook?: () => void;
-  onOpenImporter?: () => void;
 }
 
-export function CommandPalette({ isOpen, onClose, onOpenPlaybook, onOpenImporter }: CommandPaletteProps) {
+export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const navigate = useNavigate();
   const { dispatch } = useAppState();
   const [query, setQuery] = useState('');
@@ -35,38 +34,17 @@ export function CommandPalette({ isOpen, onClose, onOpenPlaybook, onOpenImporter
   }, [isOpen]);
 
   const allItems: PaletteItem[] = useMemo(() => [
-    { kind: 'Screen', label: 'Origination & Sourcing desk', hint: '1', id: 's-origination', run: () => { navigate('/sourcing'); onClose(); } },
-    { kind: 'Screen', label: 'Trade builder', hint: '4', id: 's-trade', run: () => { navigate('/trade'); onClose(); } },
-    { kind: 'Screen', label: 'Pricing desk & broker runs', hint: '5', id: 's-pricing', run: () => { navigate('/pricing'); onClose(); } },
-    { kind: 'Screen', label: 'Portfolio risk & VaR', hint: 'R', id: 's-risk', run: () => { navigate('/risk'); onClose(); } },
-    { kind: 'Screen', label: 'Plant registry (1,974)', hint: '2', id: 's-plants', run: () => { navigate('/plants'); onClose(); } },
-    { kind: 'Screen', label: 'Registries & flow telemetry', hint: 'G', id: 's-registries', run: () => { navigate('/registries'); onClose(); } },
-    { kind: 'Screen', label: 'Compliance & logistics map', hint: '3', id: 's-map', run: () => { navigate('/map'); onClose(); } },
-    { kind: 'Screen', label: 'Statutory citations', hint: 'C', id: 's-citations', run: () => { navigate('/citations'); onClose(); } },
-    { kind: 'Screen', label: 'Data sources & provenance', hint: '7', id: 's-sources', run: () => { navigate('/data-sources'); onClose(); } },
+    // Screens come from the same nav config as the header menus, so the palette never drifts.
+    ...[...NAV_GROUPS.flatMap(g => g.items), ASK_NAV_ITEM].map<PaletteItem>(item => ({
+      kind: 'Screen',
+      label: item.label,
+      hint: item.keyHint,
+      id: `s-${item.to}`,
+      run: () => { navigate(item.to); onClose(); },
+    })),
     {
       kind: 'Action',
-      label: 'Open delivery playbook · DK → DE',
-      hint: '⏎',
-      id: 'a-playbook',
-      run: () => {
-        onClose();
-        if (onOpenPlaybook) onOpenPlaybook();
-      },
-    },
-    {
-      kind: 'Action',
-      label: 'Import broker run',
-      hint: '',
-      id: 'a-importer',
-      run: () => {
-        onClose();
-        if (onOpenImporter) onOpenImporter();
-      },
-    },
-    {
-      kind: 'Action',
-      label: 'Price on bid',
+      label: 'Price certificates and molecules on bid',
       hint: '',
       id: 'a-bid',
       run: () => {
@@ -77,7 +55,7 @@ export function CommandPalette({ isOpen, onClose, onOpenPlaybook, onOpenImporter
     },
     {
       kind: 'Action',
-      label: 'Price on mid',
+      label: 'Price certificates and molecules on mid',
       hint: '',
       id: 'a-mid',
       run: () => {
@@ -88,7 +66,7 @@ export function CommandPalette({ isOpen, onClose, onOpenPlaybook, onOpenImporter
     },
     {
       kind: 'Action',
-      label: 'Price on offer',
+      label: 'Price certificates and molecules on offer',
       hint: '',
       id: 'a-offer',
       run: () => {
@@ -97,7 +75,7 @@ export function CommandPalette({ isOpen, onClose, onOpenPlaybook, onOpenImporter
         onClose();
       },
     },
-  ], [navigate, onClose, onOpenPlaybook, onOpenImporter, dispatch]);
+  ], [navigate, onClose, dispatch]);
 
   const filteredItems = useMemo(() => {
     const q = query.trim().toLowerCase();

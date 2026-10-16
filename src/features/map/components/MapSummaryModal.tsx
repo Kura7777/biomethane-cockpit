@@ -187,7 +187,7 @@ export function MapSummaryContent({
           })()}
         </div>
 
-        {isExpanded && <RouteVerdictCard origin={r.origin} target={r.target} />}
+        {isExpanded && <RouteVerdictCard origin={r.origin} target={r.target} plant={activeLinkedPlant} />}
       </div>
     );
   };

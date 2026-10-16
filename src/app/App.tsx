@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { AppProvider } from '../store/context';
 import { ErrorBoundary } from '../shared/components/ErrorBoundary';
 import { Layout } from './Layout';
@@ -34,8 +34,14 @@ export function lazyWithRetry<T extends React.ComponentType<any>>(
 
       if (isChunkError) {
         const reloadKey = 'chunk_reload_' + window.location.hash;
-        if (!sessionStorage.getItem(reloadKey)) {
-          sessionStorage.setItem(reloadKey, 'true');
+        let alreadyReloaded = true;
+        try {
+          alreadyReloaded = !!sessionStorage.getItem(reloadKey);
+          if (!alreadyReloaded) sessionStorage.setItem(reloadKey, 'true');
+        } catch {
+          // storage blocked: do not loop reloads, surface the real chunk error
+        }
+        if (!alreadyReloaded) {
           window.location.reload();
           return new Promise<{ default: T }>(() => {});
         }
@@ -54,7 +60,6 @@ const OriginationPipelineScreen = lazyWithRetry(() => import('../features/plants
 const RegistriesScreen = lazyWithRetry(() => import('../features/registries/RegistriesScreen').then(m => ({ default: m.RegistriesScreen })));
 const CitationsScreen = lazyWithRetry(() => import('../features/citations/CitationsScreen').then(m => ({ default: m.CitationsScreen })));
 const DataSourcesScreen = lazyWithRetry(() => import('../features/provenance/DataSourcesScreen').then(m => ({ default: m.DataSourcesScreen })));
-const DataConnectorsScreen = lazyWithRetry(() => import('../features/settings/DataConnectorsScreen').then(m => ({ default: m.DataConnectorsScreen })));
 const CorporateOrderScreen = lazyWithRetry(() => import('../features/corporate/CorporateOrderScreen').then(m => ({ default: m.CorporateOrderScreen })));
 const ClientsScreen = lazyWithRetry(() => import('../features/clients/ClientsScreen').then(m => ({ default: m.ClientsScreen })));
 const Ets2Screen = lazyWithRetry(() => import('../features/ets2/Ets2Screen').then(m => ({ default: m.Ets2Screen })));
@@ -64,7 +69,6 @@ const MorningBriefScreen = lazyWithRetry(() => import('../features/briefing/Morn
 const DealsScreen = lazyWithRetry(() => import('../features/deals/DealsScreen').then(m => ({ default: m.DealsScreen })));
 const AskDeskScreen = lazyWithRetry(() => import('../features/helper/AskDeskScreen').then(m => ({ default: m.AskDeskScreen })));
 const GlossaryScreen = lazyWithRetry(() => import('../features/glossary/GlossaryScreen').then(m => ({ default: m.GlossaryScreen })));
-const SettingsScreen = lazyWithRetry(() => import('../features/settings/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
 
 import { ThemeProvider } from '../store/theme';
 
@@ -72,6 +76,18 @@ function LoadingScreen() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: 'var(--color-bg)' }}>
       <div className="skel" style={{ width: '120px', height: '14px' }} />
+    </div>
+  );
+}
+
+export function NotFoundScreen() {
+  return (
+    <div role="alert" style={{ padding: '48px 16px', textAlign: 'center' }}>
+      <h1 className="font-heading" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 8px' }}>Page not found</h1>
+      <p style={{ color: 'var(--color-muted)', fontSize: '13px', margin: '0 0 16px' }}>
+        This address does not match a desk screen. The link may be old.
+      </p>
+      <Link to="/" className="btn btn-primary">Back to the morning brief</Link>
     </div>
   );
 }
@@ -120,17 +136,17 @@ function AppContent() {
             <Route path="/risk" element={<Navigate to="/sourcing" replace />} />
             <Route path="/library" element={<Navigate to="/trade" replace />} />
             <Route path="/citations" element={<CitationsScreen />} />
-            <Route path="/connectors" element={<DataConnectorsScreen />} />
-            {/* Desk settings & Gemini API key security */}
-            <Route path="/settings" element={<SettingsScreen />} />
+            {/* /settings only duplicated AI-key entry, which lives on Ask and Regulation check; old links land on Ask. */}
+            <Route path="/settings" element={<Navigate to="/ask" replace />} />
+            <Route path="/connectors" element={<Navigate to="/data-sources" replace />} />
             {/* Kept for old bookmarks — the Assumptions screen now lives inside the Pricing desk. */}
             <Route path="/assumptions" element={<Navigate to="/pricing?tab=assumptions" replace />} />
             <Route path="/regulation-check" element={<RegulationCheckScreen />} />
             <Route path="/glossary" element={<GlossaryScreen />} />
             <Route path="/ask" element={<AskDeskScreen />} />
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {/* Fallback: say so instead of silently showing the brief */}
+            <Route path="*" element={<NotFoundScreen />} />
           </Route>
         </Routes>
       </Suspense>

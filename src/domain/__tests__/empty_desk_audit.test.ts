@@ -78,6 +78,7 @@ export function createEmptyDeskState(): AppState {
     },
     costsSource: {},
     savedAssessments: [],
+    dealSignoffs: {},
     selectedMarketId: null,
   };
 }

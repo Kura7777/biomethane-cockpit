@@ -16,6 +16,8 @@ import { TradePlaybookDetails } from '../tradePlaybook';
 import { CertificateRoute } from '../../../domain/registries/certificateRoutes';
 import { BiomethanePlant } from '../../../domain/plants/types';
 
+import { getPlantCount } from '../plantCounts';
+import { MapViewToggle } from './MapLegend';
 interface MapMobileViewProps {
   origin: string;
   target: string;
@@ -26,7 +28,9 @@ interface MapMobileViewProps {
   mode: 'ORIGIN' | 'TARGET';
   setMode: (mode: 'ORIGIN' | 'TARGET') => void;
   view: MapView;
+  setView: (v: MapView) => void;
   filter: RouteFilter;
+  setFilter: (f: RouteFilter) => void;
   countryAcceptsForeign: Record<string, { status: AcceptForeignStatus; schemeName?: string }>;
   routeByIso: Record<string, CertificateRoute>;
   activeLinkedPlant: BiomethanePlant | null;
@@ -68,7 +72,9 @@ export function MapMobileView({
   mode,
   setMode,
   view,
+  setView,
   filter,
+  setFilter,
   countryAcceptsForeign,
   routeByIso,
   activeLinkedPlant,
@@ -127,7 +133,7 @@ export function MapMobileView({
               aria-label="Origin country"
             >
               {sortedCountries.map(([name, c]) => (
-                <option key={c.iso} value={name}>{c.iso} · {c.name} ({c.plants}p)</option>
+                <option key={c.iso} value={name}>{c.iso} · {c.name} ({getPlantCount(c.iso)}p)</option>
               ))}
             </select>
           </label>
@@ -181,6 +187,13 @@ export function MapMobileView({
           panelOffsetDeg={0}
         />
 
+        <details className="map-m-mode" data-testid="map-m-view-filter">
+          <summary style={{ minHeight: '44px', display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+            View &amp; filter
+          </summary>
+          <MapViewToggle view={view} setView={setView} filter={filter} setFilter={setFilter} touch />
+        </details>
+
         {view !== 'COMPLIANCE' ? (
           <div className="map-m-mode map-m-hint">{ROUTES_HINT}</div>
         ) : (
@@ -228,10 +241,10 @@ export function MapMobileView({
         <span className="map-m-peek-figs">
           <span>
             <span className="eyebrow">Plants</span>
-            <span className="num map-m-fig">{selectedMeta.plants}</span>
+            <span className="num map-m-fig">{getPlantCount(selectedMeta.iso)}</span>
           </span>
           <span>
-            <span className="eyebrow">Production · TWh/yr</span>
+            <span className="eyebrow">Production · TWh/yr (est.)</span>
             <span className="num map-m-fig">{selectedMeta.twh} TWh</span>
           </span>
           <span>

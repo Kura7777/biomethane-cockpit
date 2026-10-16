@@ -6,6 +6,7 @@ import {
   type CertificateRoute,
 } from '../../domain/registries/certificateRoutes';
 import { getTradePlaybook, getPlaybookDealUrl } from './tradePlaybook';
+import type { BiomethanePlant } from '../../domain/plants/types';
 import './map.css';
 
 export const EVIDENCE_GRADE_TEXT: Record<string, string> = {
@@ -29,6 +30,8 @@ interface RouteVerdictCardProps {
   filter?: 'ALL' | 'GO' | 'POS';
   /** Adds a "See on map" link to #/map?origin=..&target=.. (off on the map itself). */
   showMapLink?: boolean;
+  /** A sourced plant on this origin: the Trade link then carries its volume, CI and feedstock. */
+  plant?: BiomethanePlant | null;
 }
 
 /**
@@ -36,7 +39,7 @@ interface RouteVerdictCardProps {
  * PoS (mass balance quota) status per scheme, any open question and the sources. It reads the
  * audited route matrix itself, so the map, Origination Step 3 and the market ladder cannot disagree.
  */
-export function RouteVerdictCard({ origin, target, filter = 'ALL', showMapLink = false }: RouteVerdictCardProps) {
+export function RouteVerdictCard({ origin, target, filter = 'ALL', showMapLink = false, plant = null }: RouteVerdictCardProps) {
   const r = getCertificateRoute(origin, target);
   const playbook = getTradePlaybook(origin, target, r);
   const goDetails = getGoRoute(r.origin, r.target);
@@ -49,7 +52,7 @@ export function RouteVerdictCard({ origin, target, filter = 'ALL', showMapLink =
   ];
   const uniqueSources = allSources.filter((s, idx, arr) => arr.findIndex(x => x.url === s.url) === idx);
 
-      const tradeUrl = getPlaybookDealUrl(r.origin, r.target, r, filter);
+      const tradeUrl = getPlaybookDealUrl(r.origin, r.target, r, filter, plant);
 
       return (
         <div className="map-route-expanded-card" data-testid={`expanded-${r.target}`}>

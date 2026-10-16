@@ -44,7 +44,7 @@ export function ScGateChips({
 }) {
   if (!gates) return null;
   return (
-    <span className="sc-gates" role="img" aria-label="Gates: Scheme, UDB, Mass balance, Annex IX, GHG, Member state">
+    <span className="sc-gates" {...(onGateClick ? { role: 'group' } : { role: 'img' })} aria-label="Gates: Scheme, UDB, Mass balance, Annex IX, GHG, Member state">
       {gates.map((g, i) =>
         onGateClick ? (
           <button

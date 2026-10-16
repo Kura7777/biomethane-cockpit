@@ -25,6 +25,7 @@ import { getTradePlaybook, getPlaybookDealUrl } from '../tradePlaybook';
 import { CertificateRoute, getCertificateRoute } from '../../../domain/registries/certificateRoutes';
 import { BiomethanePlant } from '../../../domain/plants/types';
 
+import { getPlantCount } from '../plantCounts';
 interface MapSvgLayerProps {
   isMobile: boolean;
   origin: string;
@@ -227,7 +228,7 @@ export function MapSvgLayer({
                     userSelect: 'none',
                   }}
                 >
-                  {cMeta.plants}
+                  {getPlantCount(cMeta.iso)}
                 </text>
               </Marker>
             );
@@ -385,10 +386,10 @@ export function MapSvgLayer({
           <div style={{ display: 'flex', gap: '18px', marginTop: '8px' }}>
             <div>
               <div className="eyebrow">Plants</div>
-              <div className="num" style={{ fontSize: '16px', fontWeight: 800 }}>{hoveredCountry.plants}</div>
+              <div className="num" style={{ fontSize: '16px', fontWeight: 800 }}>{getPlantCount(hoveredCountry.iso)}</div>
             </div>
             <div>
-              <div className="eyebrow">Installed</div>
+              <div className="eyebrow">Production (est.)</div>
               <div className="num" style={{ fontSize: '16px', fontWeight: 800 }}>{hoveredCountry.twh} TWh</div>
             </div>
           </div>

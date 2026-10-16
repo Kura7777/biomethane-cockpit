@@ -21,6 +21,44 @@ export interface FlowStepsProps<T extends number = number> {
 /** Vertical step flow: numbered markers on a rail, only the current step open, finished steps
  *  folded to a one-line summary with an Edit link. Every step is clickable. Wrap it in
  *  .ds-flow-column so every step shares one fixed width. Styles: ds-flow-* in desk.css. */
+/** The phone layout of FlowSteps: one open step, plus a Back control to any earlier step
+ *  (the Next control lives in each flow's own body). Exported for testing. */
+export function FlowStepsMobile<T extends number = number>({ steps, current, onSelect, renderBody, ariaLabel }: FlowStepsProps<T>) {
+  const currentIndex = steps.findIndex(s => s.id === current);
+  const total = steps.length;
+  const step = steps[currentIndex];
+  const previous = currentIndex > 0 ? steps[currentIndex - 1] : null;
+  const percent = total > 0 ? ((currentIndex + 1) / total) * 100 : 0;
+  return (
+    <div className="ds-flow-mobile" aria-label={ariaLabel}>
+      <div className="ds-flow-mobile-head">
+        {previous && (
+          <button
+            type="button"
+            className="btn btn-secondary ds-flow-mobile-back"
+            style={{ padding: '4px 10px', fontSize: '12px', marginRight: '8px' }}
+            onClick={() => onSelect(previous.id)}
+            aria-label={`Back to step ${currentIndex}: ${previous.label}`}
+          >
+            ← Back
+          </button>
+        )}
+        <span className="ds-flow-mobile-step num">Step {currentIndex + 1} of {total}</span>
+        {step && (
+          <>
+            <span className="ds-flow-mobile-sep" aria-hidden="true">·</span>
+            <span className="ds-flow-mobile-label">{step.label}</span>
+          </>
+        )}
+      </div>
+      <div className="ds-flow-mobile-track">
+        <div className="ds-flow-mobile-fill" style={{ width: `${percent}%` }} />
+      </div>
+      <div className="ds-flow-mobile-body">{step && renderBody(step.id)}</div>
+    </div>
+  );
+}
+
 export function FlowSteps<T extends number = number>({ steps, current, onSelect, renderBody, ariaLabel }: FlowStepsProps<T>) {
   const isMobile = useIsMobile();
   const stepRefs = useRef(new Map<T, HTMLLIElement>());
@@ -44,26 +82,7 @@ export function FlowSteps<T extends number = number>({ steps, current, onSelect,
   // collapses to a "Step N of M · Label" line and a thin progress bar; only the current step's
   // body renders below it. Desktop (>=768px) keeps the full rail unchanged.
   if (isMobile) {
-    const total = steps.length;
-    const step = steps[currentIndex];
-    const percent = total > 0 ? ((currentIndex + 1) / total) * 100 : 0;
-    return (
-      <div className="ds-flow-mobile" aria-label={ariaLabel}>
-        <div className="ds-flow-mobile-head">
-          <span className="ds-flow-mobile-step num">Step {currentIndex + 1} of {total}</span>
-          {step && (
-            <>
-              <span className="ds-flow-mobile-sep" aria-hidden="true">·</span>
-              <span className="ds-flow-mobile-label">{step.label}</span>
-            </>
-          )}
-        </div>
-        <div className="ds-flow-mobile-track">
-          <div className="ds-flow-mobile-fill" style={{ width: `${percent}%` }} />
-        </div>
-        <div className="ds-flow-mobile-body">{step && renderBody(step.id)}</div>
-      </div>
-    );
+    return <FlowStepsMobile steps={steps} current={current} onSelect={onSelect} renderBody={renderBody} ariaLabel={ariaLabel} />;
   }
 
   return (

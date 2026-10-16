@@ -21,11 +21,11 @@ describe('getPageTitle', () => {
   });
 
   it('resolves a nested path under a nav route to that route\'s label', () => {
-    expect(getPageTitle('/plants/friedland')).toBe('Plants (1,974)');
+    expect(getPageTitle('/plants/friedland')).toBe('Plants');
   });
 
   it('falls back to a capitalized route segment for a route outside SIDEBAR_ITEMS', () => {
-    expect(getPageTitle('/settings')).toBe('Settings');
+    expect(getPageTitle('/glossary')).toBe('Glossary');
     expect(getPageTitle('/citations')).toBe('Citations');
   });
 

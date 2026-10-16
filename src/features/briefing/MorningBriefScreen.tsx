@@ -7,7 +7,7 @@ import {
   buildBriefMarks, buildBriefOrderBook, buildBriefRoutes, buildConsignmentLadder, buildFueleuSeries,
   greetingFor, ladderHeadline, latestFueleu, summariseFreshness, summariseSupplyByCountry, type CountrySupply,
 } from '../../domain/briefing/morningBrief';
-import { DEFAULT_USER } from '../../domain/auth/authStore';
+import { getDeskUserName } from '../../shared/identity/deskUser';
 import { BriefHero } from './BriefHero';
 import { BriefKpis } from './BriefKpis';
 import { BriefLadder } from './BriefLadder';
@@ -90,7 +90,7 @@ export function MorningBriefScreen() {
     <div className="ds-page-shell bf" data-testid="morning-brief">
       <BriefHero
         greeting={greetingFor(now)}
-        firstName={DEFAULT_USER.name.split(' ')[0]}
+        firstName={getDeskUserName().split(' ')[0]}
         today={now}
         tickers={tickers}
         onTick={m => { setBoardQuery(m.shortName); go('board'); }}

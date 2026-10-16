@@ -14,18 +14,36 @@ import { AuditorModalTab, normalizeAuditorTab, normalizeTradeAuditContext, Trade
 const ComplianceAuditModal = React.lazy(() =>
   import('../features/auditor/ComplianceAuditModal').then(m => ({ default: m.ComplianceAuditModal }))
 );
+import { getSaveIndicator } from './saveStatus';
 import { useIsMobile } from '../shared/hooks/useMediaQuery';
 import { PageHelper } from '../features/helper/PageHelper';
 // Side-effect import: registers the beforeinstallprompt/appinstalled listeners at startup so
 // they're captured even before the mobile Desk sheet (the only current caller) ever mounts.
 import './installPrompt';
 
-const DATA_SOURCE_TEXT = 'GIE / EBA European Biomethane Map 2026 · 1,974 facilities · RED III consolidated to August 2026';
+/**
+ * Plant count comes from the registry itself. The registry is a multi-MB chunk, so it is
+ * imported lazily rather than pulled into the shell's first load.
+ */
+function usePlantCount(): number | null {
+  const [count, setCount] = useState<number | null>(null);
+  useEffect(() => {
+    let live = true;
+    import('../domain/plants/registry')
+      .then(m => { if (live) setCount(m.COMBINED_BIOMETHANE_PLANTS.length); })
+      .catch(() => { /* count simply stays hidden */ });
+    return () => { live = false; };
+  }, []);
+  return count;
+}
 
 export function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { state, dispatch, isSaving } = useAppState();
+  const { state, dispatch, isSaving, saveFailed } = useAppState();
+  const plantCount = usePlantCount();
+  const DATA_SOURCE_TEXT = `GIE / EBA European Biomethane Map 2026${plantCount != null ? ` · ${plantCount.toLocaleString('en-GB')} facilities` : ''} · RED III consolidated to August 2026`;
+  const saveIndicator = getSaveIndicator(isSaving, saveFailed);
   const isMobile = useIsMobile();
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [isAuditorOpen, setIsAuditorOpen] = useState(false);
@@ -44,7 +62,7 @@ export function Layout() {
   const handleBackup = useCallback(() => {
     try {
       const filename = downloadDeskBackup(state);
-      showToast(`✓ Desk backup saved to drive · ${filename}`);
+      showToast(`✓ Desk backup downloaded · ${filename}`);
     } catch {
       showToast('Failed to create desk backup');
     }
@@ -91,7 +109,7 @@ export function Layout() {
     ).length;
   }, [state.marks.marks]);
 
-  // Global Keyboard Shortcuts (1-7, S, R, C, G, M, E, L, Q, Cmd+K, Esc)
+  // Global Keyboard Shortcuts (1-5, 7, B, S, C, G, M, E, L, Q, Cmd+K, Esc)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
@@ -128,6 +146,11 @@ export function Layout() {
         return;
       }
 
+      // A modal or sheet is open: single-key shortcuts must not navigate away behind it
+      if (document.querySelector('[aria-modal="true"]')) {
+        return;
+      }
+
       // Never hijack keystrokes inside FuelEU Maritime multi-step desk flows
       if (location.pathname.startsWith('/fueleu')) {
         return;
@@ -150,7 +173,6 @@ export function Layout() {
       if (e.key === '4') navigate('/trade');
       if (e.key === '5') navigate('/pricing');
       if (e.key === '7') navigate('/data-sources');
-      if (k === 'r') navigate('/risk');
       if (k === 'c') navigate('/citations');
       if (k === 's') navigate('/sourcing');
       if (k === 'g') navigate('/registries');
@@ -207,7 +229,7 @@ export function Layout() {
         }}
         className="noscroll"
       >
-        <ErrorBoundary>
+        <ErrorBoundary key={location.pathname} resetKey={location.pathname}>
           {/* Screens are lazy chunks. Suspending here keeps the header and tab bar on screen while
               one loads; the Suspense in App.tsx only covers the shell's own first load. */}
           <Suspense fallback={<ScreenLoading />}>
@@ -255,13 +277,13 @@ export function Layout() {
                 width: '6px',
                 height: '6px',
                 borderRadius: '50%',
-                backgroundColor: isSaving ? '#f59e0b' : '#10b981',
-                boxShadow: isSaving ? '0 0 6px #f59e0b' : '0 0 6px #10b981',
+                backgroundColor: saveIndicator.color,
+                boxShadow: saveIndicator.glow,
                 transition: 'all 200ms ease',
               }}
             />
             <span style={{ color: 'var(--color-text)', fontWeight: 500 }}>
-              {isSaving ? 'Saving...' : 'Auto-saved'}
+              {saveIndicator.label}
             </span>
             <span style={{ opacity: 0.4 }}>·</span>
             <button
@@ -310,9 +332,7 @@ export function Layout() {
 
           <span style={{ opacity: 0.3 }}>│</span>
 
-          {/* Connectors hidden from the footer until there are live data feeds; /connectors still routes. */}
-
-          <span>Keys 1–7 screens · ⌘K command</span>
+          <span>Keys 1–5, 7 screens · ⌘K command</span>
 
           <span style={{ opacity: 0.3 }}>│</span>
 
@@ -351,6 +371,7 @@ export function Layout() {
           onBackup={handleBackup}
           onRestoreFile={handleRestoreFile}
           isSaving={isSaving}
+          saveFailed={saveFailed}
           simulatedCount={simulatedCount}
           dataSourceText={DATA_SOURCE_TEXT}
         />

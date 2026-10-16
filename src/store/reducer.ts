@@ -1,3 +1,4 @@
+import { canTransition, isCommittedDeal, statusOfDeal } from './dealGuards';
 import { BrokerRunMeta, PricingBookEntry, NON_BROKER_SEED_ROW_IDS } from '../domain/markets/brokerRun.seed';
 import { DE_THG_BUNDLE_MARK_PREFIX } from '../domain/markets/deThgBundle';
 import { simulateDesk } from '../domain/marks/simulate';
@@ -123,9 +124,29 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           ...state.savedAssessments.filter(a => a.id !== action.assessment.id),
         ],
       };
-    case 'DELETE_ASSESSMENT':
-      return { ...state, savedAssessments: state.savedAssessments.filter(a => a.id !== action.id) };
+    case 'DELETE_ASSESSMENT': {
+      const target = state.savedAssessments.find(a => a.id === action.id);
+      // An agreed / transferred deal is only deleted with explicit (typed) confirmation.
+      if (target && isCommittedDeal(target) && !action.confirmed) return state;
+      const { [action.id]: _removed, ...restSignoffs } = state.dealSignoffs ?? {};
+      void _removed;
+      return {
+        ...state,
+        savedAssessments: state.savedAssessments.filter(a => a.id !== action.id),
+        dealSignoffs: restSignoffs,
+      };
+    }
+    case 'SET_COMPLIANCE_SIGNOFF':
+      // Only a deal that exists on the blotter can carry a sign-off.
+      if (!state.savedAssessments.some(a => a.id === action.id)) return state;
+      return {
+        ...state,
+        dealSignoffs: { ...(state.dealSignoffs ?? {}), [action.id]: { by: action.by, at: action.at } },
+      };
     case 'SET_ASSESSMENT_STATUS': {
+      const current = state.savedAssessments.find(a => a.id === action.id);
+      // TRANSFERRED is final: a transferred deal cannot be moved back to a live status.
+      if (current && !canTransition(statusOfDeal(current), action.status)) return state;
       const at = new Date().toISOString();
       return {
         ...state,

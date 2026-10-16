@@ -15,14 +15,11 @@ describe('Map accuracy fixes (01-accuracy.md audit requirements)', () => {
     expect(statuses).not.toContain('RESTRICTED');
   });
 
-  it('D: Plant and TWh numbers match MARKETS where available', () => {
+  it('D: TWh numbers match MARKETS where available (plant counts now come from the plant registry)', () => {
     for (const m of MARKETS) {
-      if (m.country && (m.productionPlants !== undefined || m.annualProductionTWh !== undefined)) {
+      if (m.country && m.annualProductionTWh !== undefined) {
         const countryEntry = Object.values(COUNTRIES).find(c => c.iso === m.country);
         if (countryEntry) {
-          if (m.productionPlants !== undefined) {
-            expect(countryEntry.plants, `Plants mismatch for ${m.country}`).toBe(m.productionPlants);
-          }
           if (m.annualProductionTWh !== undefined) {
             expect(countryEntry.twh, `TWh mismatch for ${m.country}`).toBe(m.annualProductionTWh);
           }

@@ -38,7 +38,7 @@ export interface NavSection {
 export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/brief', label: 'Morning brief', keyHint: 'B', icon: Sunrise },
   { to: '/sourcing', label: 'Origination', keyHint: '1', icon: Compass },
-  { to: '/plants', label: 'Plants (1,974)', keyHint: '2', icon: Building2 },
+  { to: '/plants', label: 'Plants', keyHint: '2', icon: Building2 },
   { to: '/registries', label: 'Registries & Flows', keyHint: 'G', icon: ShieldCheck },
   { to: '/map', label: 'Logistics Map', keyHint: '3', icon: Globe },
   { to: '/trade', label: 'Trade Builder', keyHint: '4', icon: Zap },
@@ -48,7 +48,6 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/corporate', label: 'Corporate orders', keyHint: 'Q', icon: Briefcase },
   { to: '/pricing', label: 'Pricing Desk', keyHint: '5', icon: FileSpreadsheet },
   { to: '/deals', label: 'Deal Blotter', keyHint: '', icon: BookOpen },
-  // Data Connectors hidden here until there are live data feeds; /connectors still routes.
   { to: '/data-sources', label: 'Data Sources', keyHint: '7', icon: Database },
   { to: '/regulation-check', label: 'Regulation check', keyHint: '', icon: ShieldAlert },
   { to: '/ask', label: 'Ask the desk', keyHint: '', icon: MessageCircle },

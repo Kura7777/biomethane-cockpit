@@ -18,6 +18,8 @@ import { ForwardCurvesView } from './ForwardCurvesView';
 import { ComplianceLadderView } from './ComplianceLadderView';
 import { GuaranteesOfOriginView } from './GuaranteesOfOriginView';
 import { sortQuotesChronologically, SortField, SortDirection } from './marksSort';
+import { buildCsv, type CsvValue } from '../../domain/companies/csv';
+import { downloadTextFile } from '../../utils/download';
 import {
   Download,
   Search,
@@ -124,7 +126,7 @@ export function MarksScreen() {
       if (p.id === 'ALL') {
         return { label: 'ALL', id: 'ALL' };
       }
-      let count = 0;
+      let count: number;
       if (p.id === 'BALTICS') {
         count = quotes.filter(q => ['EE', 'LT', 'LV'].includes(q.country)).length;
       } else if (p.id === 'CEE') {
@@ -231,29 +233,30 @@ export function MarksScreen() {
 
   const handleExportCsv = () => {
     const headers = ['Country', 'Class', 'Feedstock', 'Vintage', 'Certified', 'Subsidized', 'CI Score', 'BID Price', 'OFFER Price', 'BID Volume', 'OFFER Volume', 'Price Derived From', 'Provenance Tier'];
+    // Plain numeric strings stay numbers (so a negative price is not apostrophe-guarded); every other
+    // text cell goes through the shared CSV helper: quoted, and neutralised if it starts like a formula.
+    const num = (v: string | number | null | undefined) =>
+      typeof v === 'string' && /^-?\d+(\.\d+)?$/.test(v.trim()) ? Number(v) : v;
     const rows = sortedFilteredQuotes.map(q => [
       q.country,
       q.class,
-      `"${q.feedstock}"`,
+      q.feedstock,
       q.vintage,
-      `"${q.certified}"`,
+      q.certified,
       q.subsidized,
-      `"${q.ciScore}"`,
-      `"${q.bidPrice}"`,
-      `"${q.offerPrice}"`,
-      `"${q.bidVolume}"`,
-      `"${q.offerVolume}"`,
-      `"${q.derivedFrom}"`,
+      q.ciScore,
+      num(q.bidPrice),
+      num(q.offerPrice),
+      num(q.bidVolume),
+      num(q.offerVolume),
+      q.derivedFrom,
       q.provenanceTier,
-    ]);
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `pan-european-biomethane-order-book-${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    ] as CsvValue[]);
+    downloadTextFile(
+      `pan-european-biomethane-order-book-${new Date().toISOString().slice(0, 10)}.csv`,
+      buildCsv(headers, rows),
+      'text/csv',
+    );
     showToast('Pan-European order book exported to CSV');
   };
 

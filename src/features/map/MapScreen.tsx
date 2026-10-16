@@ -179,7 +179,9 @@ export function MapScreen() {
           mode={mode}
           setMode={setMode}
           view={view}
+          setView={setView}
           filter={filter}
+          setFilter={setFilter}
           countryAcceptsForeign={countryAcceptsForeign}
           routeByIso={routeByIso}
           activeLinkedPlant={activeLinkedPlant}
@@ -208,6 +210,18 @@ export function MapScreen() {
           onClose={() => setIsLogisticsOpen(false)}
           originCountry={originMeta.iso}
           targetCountry={targetMeta.iso}
+        />
+        {/* The full trade summary is the phone's only list of every destination with Trade buttons. */}
+        <MapSummaryModal
+          isOpen={isSummaryOpen}
+          onClose={() => setIsSummaryOpen(false)}
+          originMeta={originMeta}
+          filter={filter}
+          setFilter={setFilter}
+          certRoutes={certRoutes}
+          nameByIso={nameByIso}
+          categoryCounts={categoryCounts}
+          activeLinkedPlant={activeLinkedPlant}
         />
       </>
     );
@@ -372,7 +386,7 @@ export function MapScreen() {
 
       {/* Route Summary Modal (Desktop) */}
       <MapSummaryModal
-        isOpen={isSummaryOpen && !isMobile}
+        isOpen={isSummaryOpen}
         onClose={() => setIsSummaryOpen(false)}
         originMeta={originMeta}
         filter={filter}

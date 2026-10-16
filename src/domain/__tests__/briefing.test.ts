@@ -5,7 +5,6 @@ import {
   generateMorningBriefing,
   synthesizeOvernightMovers,
   evaluateMarkStaleness,
-  calculatePriceMovement,
   formatStructuredDealUrl,
   DEFAULT_PRIOR_CLOSE_MARKS,
 } from '../briefing';
