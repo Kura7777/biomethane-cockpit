@@ -46,7 +46,6 @@ export function stageStructuredMarks(args: {
 }): BrokerParseResult {
   const today = args.now.toISOString().slice(0, 10);
   const fx = args.marksState.fx?.gbpEur ?? null;
-  const warnings: string[] = [];
   const errors: string[] = [];
 
   let effDate = today;

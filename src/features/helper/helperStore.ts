@@ -1,5 +1,10 @@
 import { useSyncExternalStore } from 'react';
 import type { HelperTurn } from '../../domain/help/helperLogic';
+import type { BrokerParseResult } from '../../domain/markets/brokerRunParser';
+import type { DeskMemoryRule } from '../../domain/help/deskMemory';
+
+/** A rule the helper proposed; stored only after the trader confirms. */
+export type StagedMemoryRule = Pick<DeskMemoryRule, 'subject' | 'rule' | 'category'>;
 
 /**
  * Helper session state, kept outside React so the chat survives the screen changes that unmount
@@ -22,6 +27,10 @@ export interface HelperSnapshot {
   recent: readonly string[];
   /** When set, the panel shows this page's chat read-only instead of the current page's. */
   viewing: string | null;
+  /** Marks the helper staged: kept (across pages) until the trader commits or dismisses them. */
+  stagedRun: BrokerParseResult | null;
+  /** Memory rules the helper proposed, waiting for the trader's confirmation. */
+  stagedMemory: readonly StagedMemoryRule[];
 }
 
 function readFlag(key: string): boolean {
@@ -73,6 +82,8 @@ let snapshot: HelperSnapshot = {
   conversations: storedConversations,
   recent: Object.keys(storedConversations),
   viewing: null,
+  stagedRun: null,
+  stagedMemory: [],
 };
 const listeners = new Set<() => void>();
 
@@ -137,6 +148,18 @@ export function setHelperViewing(pageKey: string | null): void {
   set({ ...snapshot, viewing: pageKey });
 }
 
+export function setStagedRun(run: BrokerParseResult | null): void {
+  set({ ...snapshot, stagedRun: run });
+}
+
+export function addStagedMemory(rule: StagedMemoryRule): void {
+  set({ ...snapshot, stagedMemory: [...snapshot.stagedMemory, rule] });
+}
+
+export function removeStagedMemory(rule: StagedMemoryRule): void {
+  set({ ...snapshot, stagedMemory: snapshot.stagedMemory.filter(r => r !== rule) });
+}
+
 /** Test helper: back to a fresh session. */
 export function resetHelperStore(): void {
   try {
@@ -148,6 +171,6 @@ export function resetHelperStore(): void {
   } catch {
     // Ignore
   }
-  set({ open: false, expanded: false, conversations: {}, recent: [], viewing: null });
+  set({ open: false, expanded: false, conversations: {}, recent: [], viewing: null, stagedRun: null, stagedMemory: [] });
 }
 

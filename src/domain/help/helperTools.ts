@@ -22,7 +22,7 @@ import { ASSUMPTION_DEFINITIONS, getAssumption, isAssumptionOpen } from '../assu
 import { quoteIdentityForMarket } from '../marks/applyMarks';
 import type { PricingBookEntry } from '../markets/brokerRun.seed';
 import { parseTenorSortKey } from '../../features/marks/marksSort';
-import { buildInputs, caveatFor, markInput, type HelperInputs } from './helperProvenance';
+import { buildInputs, caveatFor, markInput } from './helperProvenance';
 import { solveDealBreakeven } from './helperBreakeven';
 import { stageStructuredMarks } from './helperStaging';
 import { evaluateDocument } from './helperDocReview';
@@ -92,7 +92,7 @@ export const HELPER_TOOLS: Anthropic.Beta.BetaTool[] = [
   },
   {
     name: 'get_desk_memory',
-    description: 'Query persistent desk memory: custom rules, counterparty traits (e.g. Shell, Eni requirements), tariff notes, and past deal journals recorded on this desk.',
+    description: 'Query persistent desk memory: custom rules, counterparty traits (e.g. Shell, Eni requirements) and tariff notes the trader confirmed. There is no deal journal.',
     strict: true,
     input_schema: obj({ query: { type: 'string', description: 'Keyword, market, or counterparty name (or empty string for all)' } }, ['query']),
   },
@@ -327,8 +327,6 @@ async function runHelperToolInner(name: string, input: unknown, ctx: HelperToolC
         query: q,
         rulesFound: res.rules.length,
         rules: res.rules.slice(0, 8),
-        dealsFound: res.deals.length,
-        deals: res.deals.slice(0, 5),
       });
     }
     case 'save_desk_memory': {

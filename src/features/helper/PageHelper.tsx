@@ -30,7 +30,9 @@ import { askHelperStream } from '../../domain/help/helperClient';
 import { askGeminiStream } from '../../domain/help/geminiHelperClient';
 import { currentHelperModel, setHelperProvider, type HelperModel } from '../../domain/help/helperModels';
 import { addTodaySpendUsd, dailyCapReached, dailyCapUsd, formatUsd, getTodaySpendUsd, subscribeTodaySpend } from '../../domain/help/helperCost';
-import { appendHelperTurn, getHelperSnapshot, setHelperExpanded, setHelperOpen, setHelperViewing, useHelperStore } from './helperStore';
+import { addStagedMemory, appendHelperTurn, getHelperSnapshot, setHelperExpanded, setHelperOpen, setHelperViewing, setStagedRun, useHelperStore, type StagedMemoryRule } from './helperStore';
+import { StagedMarksCard } from './StagedMarksCard';
+import { StagedMemoryCard } from './StagedMemoryCard';
 import type { BrokerParseResult } from '../../domain/markets/brokerRunParser';
 import './helper.css';
 
@@ -83,6 +85,8 @@ export interface Chat {
   send: (question: string) => void;
   stagedRun: BrokerParseResult | null;
   clearStagedRun: () => void;
+  /** Memory rules proposed by the helper, waiting for the trader. */
+  stagedMemory: readonly StagedMemoryRule[];
 }
 
 function titleFor(key: string): string {
@@ -96,12 +100,12 @@ function titleFor(key: string): string {
 export function useHelperChat(): Chat {
   const { pathname, search } = useLocation();
   const store = useHelperStore();
+  const stagedRun = store.stagedRun;
   const contextVersion = useSyncExternalStore(subscribePageContext, getPageContextVersion, getPageContextVersion);
   const online = useSyncExternalStore(subscribeOnline, getOnline, () => true);
   const [busy, setBusy] = useState(false);
   const [liveText, setLiveText] = useState('');
   const [status, setStatus] = useState<string | null>(null);
-  const [stagedRun, setStagedRun] = useState<BrokerParseResult | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const app = useOptionalAppState();
   const appRef = useRef(app);
@@ -203,14 +207,18 @@ export function useHelperChat(): Chat {
       toolCtx: {
         marks: state.marks,
         costs: state.costs,
+        pricingBook: state.pricingBook,
         onStageMarks: (res: BrokerParseResult) => setStagedRun(res),
+        onStageMemory: rule => addStagedMemory(rule),
       },
+      // Spend counts as each round completes, so a stopped or failed answer still counts toward the daily cap.
+      onSpend: usd => addTodaySpendUsd(usd),
+      budgetReached: () => dailyCapReached(),
       signal: controller.signal,
       onText: delta => { streamed += delta; setLiveText(streamed); },
       onStatus: setStatus,
     })
       .then(answer => {
-        addTodaySpendUsd(answer.costUsd);
         appendHelperTurn(pageKey, { id: nextId(), role: 'assistant', text: answer.text, sources: answer.sources, model: model.name, costUsd: answer.costUsd });
       })
       .catch((err: unknown) => {
@@ -252,6 +260,7 @@ export function useHelperChat(): Chat {
     send,
     stagedRun,
     clearStagedRun: () => setStagedRun(null),
+    stagedMemory: store.stagedMemory,
   };
 }
 
@@ -861,6 +870,8 @@ export function ChatBody({ chat, onNavigate, emptyChips, variant = 'page', empty
           Previous page chat ({chat.previous.title})
         </button>
       )}
+      {chat.stagedRun && <StagedMarksCard stagedRun={chat.stagedRun} onDismiss={chat.clearStagedRun} />}
+      {chat.stagedMemory.map((rule, i) => <StagedMemoryCard key={`${rule.subject}-${i}`} rule={rule} />)}
       <div ref={endRef} />
     </div>
   );

@@ -105,13 +105,9 @@ export function solveDealBreakeven(
       if (terms.margin !== null && args.producerSharePct !== null && terms.margin > 0) {
         afterShare = round2(terms.margin * (1 - args.producerSharePct / 100));
       }
-      let maxCi: { ci: number | null; note: string | null } = { ci: null, note: null };
-      if (args.producerPriceEur !== null) {
-        const gate = args.producerPriceEur + targetMargin;
-        maxCi = bisectMaxCi(ci => compare({ value: ci, sourceUrl: '' }).find(x => x.marketId === r.marketId)?.netNetbackEurPerMwh ?? null, gate);
-      } else {
-        maxCi = { ci: null, note: 'Give a producer asking price to solve the CI limit.' };
-      }
+      const maxCi = args.producerPriceEur !== null
+        ? bisectMaxCi(ci => compare({ value: ci, sourceUrl: '' }).find(x => x.marketId === r.marketId)?.netNetbackEurPerMwh ?? null, args.producerPriceEur + targetMargin)
+        : { ci: null, note: 'Give a producer asking price to solve the CI limit.' };
       return {
         marketId: r.marketId,
         marketName: r.marketName,

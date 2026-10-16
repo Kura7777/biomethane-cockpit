@@ -70,6 +70,10 @@ export interface HelperStreamCallbacks {
   onText: (delta: string) => void;
   /** What the helper is doing right now ("Searching the web"), or null when it is writing. */
   onStatus: (status: string | null) => void;
+  /** Estimated cost in dollars of each completed round, as it completes: spend counts even when the answer later fails or is stopped. */
+  onSpend?: (costUsd: number) => void;
+  /** True when the daily budget is used up: checked before every further tool round. */
+  budgetReached?: () => boolean;
 }
 
 function friendlyError(err: unknown, apiKey: string): Error {
@@ -116,6 +120,10 @@ export async function askHelperStream(
 
   try {
     for (let round = 0; round < HELPER_MAX_TOOL_ROUNDS; round++) {
+      if (round > 0 && input.budgetReached?.()) {
+        if (!text.trim()) throw new Error('The daily AI budget was used up while looking things up. Raise the cap on the Pricing desk or try again tomorrow.');
+        break;
+      }
       input.onStatus(round === 0 ? 'Thinking' : 'Writing');
       // On the last allowed round the model must answer with what it has rather than ask for another tool.
       const lastRound = round === HELPER_MAX_TOOL_ROUNDS - 1;
@@ -136,13 +144,15 @@ export async function askHelperStream(
       }
       const message = await stream.finalMessage();
       collectSources(message.content, sources);
-      usage = addUsage(usage, {
+      const roundUsage = {
         inputTokens: message.usage.input_tokens,
         cacheWriteTokens: message.usage.cache_creation_input_tokens ?? 0,
         cacheReadTokens: message.usage.cache_read_input_tokens ?? 0,
         outputTokens: message.usage.output_tokens,
         webSearches: message.usage.server_tool_use?.web_search_requests ?? 0,
-      });
+      };
+      usage = addUsage(usage, roundUsage);
+      input.onSpend?.(estimateCostUsd(helperModelById(input.model, 'anthropic'), addUsage(EMPTY_USAGE, roundUsage)));
 
       if (message.stop_reason === 'refusal') {
         if (!text.trim()) throw new Error('The model declined to answer that question.');
